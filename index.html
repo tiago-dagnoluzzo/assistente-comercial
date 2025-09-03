@@ -53,6 +53,9 @@ label{display:block;margin-bottom:6px;color:var(--muted)}
 .notice{font-size:12px;color:#ffd080}
 .debug{font-family:ui-monospace,Consolas,monospace;background:#0b1224;border:1px dashed #24304c;border-radius:10px;padding:10px;white-space:pre-wrap;max-height:180px;overflow:auto}
 .pill{display:inline-block;border:1px solid var(--border);padding:2px 8px;border-radius:999px;margin-right:6px;margin-bottom:6px;background:#0d1430;color:var(--muted);font-size:12px}
+.pill.option,.pill.selected{cursor:pointer}
+.pill.selected{background:var(--accent);color:#08202a}
+.pill.option{border-style:dashed}
 </style>
 </head>
 <body>
@@ -89,6 +92,8 @@ label{display:block;margin-bottom:6px;color:var(--muted)}
       <aside class="card">
         <h3>Lead atual</h3>
         <div id="leadSnapshot"><p class="small">Nenhum lead ainda.</p></div>
+        <h4>Carros sugeridos</h4>
+        <div id="carRecs"><p class="small">Nenhum carro sugerido.</p></div>
         <div class="row" style="margin-top:8px">
           <button class="btn secondary" id="btnSaveLead">Salvar lead</button>
           <button class="btn secondary" id="btnNewLead">Novo lead</button>
@@ -239,11 +244,11 @@ let chatStarted=false;
 
 function newLead(){
   return {
-    id: crypto.randomUUID ? crypto.randomUUID() : String(Date.now()),
-    name:"", phone:"", email:"", status:"Novo", score:0,
-    new_or_used:"", model_hint:"", budget_month:"", budget_cash:"", use_case:"", annual_km:"",
-    priorities:[], fuel:"", gearbox:"", cep:"",
-    next_followup_at:null, followup_note:"",
+      id: crypto.randomUUID ? crypto.randomUUID() : String(Date.now()),
+      name:"", phone:"", email:"", status:"Novo", score:0,
+      new_or_used:"", model_hint:"", budget_month:"", budget_cash:"", use_case:"", annual_km:"",
+      priorities:[], suggested_prios:[], recommendations:[], fuel:"", gearbox:"", cep:"",
+      next_followup_at:null, followup_note:"",
     created_at:new Date().toISOString(), updated_at:new Date().toISOString(),
     transcript:[]
   };
@@ -256,23 +261,30 @@ function appendMsg(sender, text){
   div.textContent = clean;
   messagesEl.appendChild(div); messagesEl.scrollTop = messagesEl.scrollHeight;
 
-  // EXTRAÇÃO HEURÍSTICA EM TEMPO REAL (local) — atualiza snapshot imediatamente
-  if (sender === "user" || sender === "bot"){
-    const changed = heuristicExtract(clean);
-    if (changed) { autoScoreAndSave(); updateLeadSnapshot(); }
-    renderTags();
+    // EXTRAÇÃO HEURÍSTICA EM TEMPO REAL (local) — atualiza snapshot imediatamente
+    if (sender === "user" || sender === "bot"){
+      heuristicExtract(clean);
+      currentLead.updated_at = new Date().toISOString();
+      autoScoreAndSave();
+      updateLeadSnapshot();
+      renderTags();
+    }
   }
-}
-function bot(t){ appendMsg("bot", t); currentLead.transcript.push({who:"Consultor", text:sanitize(t), ts:new Date().toISOString()}); }
-function user(t){ appendMsg("user", t); currentLead.transcript.push({who:"Cliente", text:sanitize(t), ts:new Date().toISOString()}); }
+  function bot(t){ appendMsg("bot", t); currentLead.transcript.push({who:"Consultor", text:sanitize(t), ts:new Date().toISOString()}); }
+  function user(t){ appendMsg("user", t); currentLead.transcript.push({who:"Cliente", text:sanitize(t), ts:new Date().toISOString()}); }
 
-function sanitize(s){
-  return String(s||"")
-    .replace(/\[(insira|inserir).*?\]/gi,"")
-    .replace(/\{\{.*?\}\}/g,"")
-    .replace(/\s{2,}/g," ")
-    .trim();
-}
+  function sanitize(s){
+    return String(s||"")
+      .replace(/\[(insira|inserir).*?\]/gi,"")
+      .replace(/\{\{.*?\}\}/g,"")
+      .replace(/\s{2,}/g," ")
+      .trim();
+  }
+
+  function fmtBRL(v){
+    const n=parseFloat(String(v).replace(/[^0-9,.-]/g,"").replace(/,/g,"."));
+    return isNaN(n)?"-":n.toLocaleString("pt-BR",{style:"currency",currency:"BRL"});
+  }
 
 /* ================== FLUXO COM IA ================== */
 async function handleSend(){
@@ -288,18 +300,18 @@ async function handleSend(){
   const sys = renderPrompt();
   const convo = currentLead.transcript.slice(-20);
   const aiResp = await callChat(sys, convo);
-  if (aiResp.ok){ 
-    bot(aiResp.text||"(sem resposta)"); 
-    // Tenta extrair seção oculta <!--EXTRACTION ... -->
-    const embedded = parseEmbeddedExtraction(aiResp.text||"");
-    if (embedded){ mergeLeadData(embedded); autoScoreAndSave(); updateLeadSnapshot(); debugBox.textContent = JSON.stringify(embedded,null,2); }
-  } else { 
-    bot("Falha no endpoint: "+aiResp.status); return; 
-  }
+    if (aiResp.ok){
+      bot(aiResp.text||"(sem resposta)");
+      // Tenta extrair seção oculta <!--EXTRACTION ... -->
+      const embedded = parseEmbeddedExtraction(aiResp.text||"");
+      if (embedded){ mergeLeadData(embedded); autoScoreAndSave(); updateLeadSnapshot(); renderTags(); debugBox.textContent = JSON.stringify(embedded,null,2); }
+    } else {
+      bot("Falha no endpoint: "+aiResp.status); return;
+    }
 
   // 2) Extrai dados estruturados (JSON) via prompt auxiliar (backup robusto)
-  const extracted = await aiExtractLead(convo);
-  if (extracted){ mergeLeadData(extracted); autoScoreAndSave(); updateLeadSnapshot(); }
+    const extracted = await aiExtractLead(convo);
+    if (extracted){ mergeLeadData(extracted); autoScoreAndSave(); updateLeadSnapshot(); renderTags(); }
 
   // 3) Agendamento automático se a IA sugeriu
   if (autoApptEl.checked){
@@ -376,19 +388,19 @@ function heuristicExtract(text){
   if (/manual/.test(low) && L.gearbox!=="Manual"){ L.gearbox="Manual"; changed=true; }
 
   // prioridades
-  const prios=[];
-  if (/consumo|econ[oô]mico/.test(low)) prios.push("consumo");
-  if (/conforto/.test(low)) prios.push("conforto");
-  if (/tecnologia|multim[ií]dia|adas/.test(low)) prios.push("tecnologia");
-  if (/desempenho|pot[eê]ncia|motor/.test(low)) prios.push("desempenho");
-  if (/espa[çc]o|porta-?malas|fam[ií]lia/.test(low)) prios.push("espaço");
-  if (/seguran[çc]a|airbag|esc|aba|adas/.test(low)) prios.push("segurança");
-  if (/manuten[çc][aã]o|pe[çc]as/.test(low)) prios.push("manutenção");
-  if (prios.length){
-    const set = new Set([...(L.priorities||[]), ...prios]);
-    const arr = Array.from(set);
-    if (arr.join("|") !== (L.priorities||[]).join("|")){ L.priorities = arr; changed=true; }
-  }
+    const prios=[];
+    if (/consumo|econ[oô]mico/.test(low)) prios.push("consumo");
+    if (/conforto/.test(low)) prios.push("conforto");
+    if (/tecnologia|multim[ií]dia|adas/.test(low)) prios.push("tecnologia");
+    if (/desempenho|pot[eê]ncia|motor/.test(low)) prios.push("desempenho");
+    if (/espa[çc]o|porta-?malas|fam[ií]lia/.test(low)) prios.push("espaço");
+    if (/seguran[çc]a|airbag|esc|aba|adas/.test(low)) prios.push("segurança");
+    if (/manuten[çc][aã]o|pe[çc]as/.test(low)) prios.push("manutenção");
+    if (prios.length){
+      const set = new Set([...(L.suggested_prios||[]), ...prios]);
+      const arr = Array.from(set);
+      if (arr.join("|") !== (L.suggested_prios||[]).join("|")){ L.suggested_prios = arr; changed=true; }
+    }
 
   // uso / km/ano
   if (/cidade|urbano/.test(low) && (!L.use_case || !/cidade|urbano/i.test(L.use_case))) { L.use_case = "Cidade"; changed=true; }
@@ -453,13 +465,18 @@ async function aiExtractLead(messages){
   }
 }
 
-function mergeLeadData(p){
-  const L=currentLead;
-  const assign = (k)=>{ if (p[k]) L[k]=p[k]; };
-  ["name","phone","new_or_used","model_hint","budget_cash","budget_month","use_case","annual_km","fuel","gearbox","cep"].forEach(assign);
-  if (Array.isArray(p.priorities) && p.priorities.length){ L.priorities = Array.from(new Set([...(L.priorities||[]), ...p.priorities])); }
-  L.updated_at = new Date().toISOString();
-}
+  function mergeLeadData(p){
+    const L=currentLead;
+    const assign = (k)=>{ if (p[k]) L[k]=p[k]; };
+    ["name","phone","new_or_used","model_hint","budget_cash","budget_month","use_case","annual_km","fuel","gearbox","cep"].forEach(assign);
+    if (Array.isArray(p.priorities) && p.priorities.length){
+      L.suggested_prios = Array.from(new Set([...(L.suggested_prios||[]), ...p.priorities]));
+    }
+    if (Array.isArray(p.recommendations) && p.recommendations.length){
+      L.recommendations = p.recommendations.map(r=>({model:r.model||r.name||"", price:Number(r.price)||0}));
+    }
+    L.updated_at = new Date().toISOString();
+  }
 
 function autoScoreAndSave(){
   currentLead.score = scoreLead(currentLead);
@@ -590,6 +607,7 @@ function onNewLead(){
   bot(`Olá! Eu sou ${settings.agent} da ${settings.biz}.`);
   bot("Prefere carro **novo** ou **usado**? Qual orçamento (à vista e/ou mensal) e uso principal?");
   updateLeadSnapshot();
+  renderTags();
 }
 async function doTestEP(){
   epStatus.textContent = "Testando...";
@@ -608,14 +626,18 @@ async function doTestEP(){
 /* ================== SNAPSHOT / SCORE / TAGS ================== */
 function scoreLead(L){
   let s=0;
+  if (L.name) s+=10;
+  if (L.phone && L.phone.length>=10) s+=30;
+  if (L.email) s+=10;
   if (L.new_or_used) s+=10;
   if (L.model_hint) s+=10;
-  if (L.budget_cash||L.budget_month) s+=20;
-  if (L.use_case) s+=10;
-  if ((L.priorities||[]).length) s+=10;
-  if (L.phone && L.phone.length>=10) s+=30;
+  if (L.budget_cash||L.budget_month) s+=15;
+  if (L.use_case) s+=5;
+  if ((L.priorities||[]).length) s+=5;
+  if (L.next_followup_at) s+=5;
+  if (L.fuel) s+=5;
+  if (L.gearbox) s+=5;
   if (L.cep) s+=5;
-  if ((L.priorities||[]).join(",").match(/consumo|seguran|espa|famil/i)) s+=5;
   return Math.min(100,s);
 }
 
@@ -626,25 +648,49 @@ function updateLeadSnapshot(){
     <div class="badge">${L.status}</div>
     <p><strong>${sanitize(L.name)||"(sem nome)"} </strong> • Tel ${L.phone||"-"} • Score ${L.score||0}</p>
     <p>${L.new_or_used||"-"} • ${sanitize(L.model_hint)||"-"}</p>
-    <p>Orçamento: à vista R$ ${L.budget_cash||"-"} • mensal R$ ${L.budget_month||"-"}</p>
+    <p>Orçamento: à vista ${fmtBRL(L.budget_cash)} • mensal ${fmtBRL(L.budget_month)}</p>
     <p>Uso: ${sanitize(L.use_case)||"-"} • km/ano ${L.annual_km||"-"} • CEP ${L.cep||"-"}</p>
     <p>Preferências: ${sanitize((L.priorities||[]).join(", "))||"-"} • ${L.fuel||"-"} • ${L.gearbox||"-"}</p>
     <p>Follow-up: ${L.next_followup_at? new Date(L.next_followup_at).toLocaleString():"-"} • ${sanitize(L.followup_note||"")}</p>
   `;
+  const recs=(L.recommendations||[]).slice().sort((a,b)=>a.price-b.price);
+  document.getElementById("carRecs").innerHTML = recs.length ? `<ul>${recs.map(r=>`<li>${sanitize(r.model)} - ${fmtBRL(r.price)}</li>`).join("")}</ul>` : "<p class='small'>Nenhum carro sugerido.</p>";
   const overdue = crm.some(x=>x.next_followup_at && new Date(x.next_followup_at).getTime() < Date.now());
   document.getElementById("followWarn").classList.toggle("hidden", !overdue);
 }
 
 function renderTags(){
   const L=currentLead;
-  const tags = [];
-  if (L.new_or_used) tags.push(L.new_or_used);
-  if (L.fuel) tags.push(L.fuel);
-  if (L.gearbox) tags.push(L.gearbox);
-  if ((L.priorities||[]).length) tags.push(...L.priorities);
-  if (L.budget_month) tags.push(`R$${L.budget_month}/mês`);
-  if (L.cep) tags.push(`CEP ${L.cep}`);
-  autoTags.innerHTML = tags.map(t=>`<span class="pill">${sanitize(t)}</span>`).join("") || "<span class='small'>Sem tags ainda.</span>";
+  const extras=[];
+  if (L.new_or_used) extras.push(L.new_or_used);
+  if (L.fuel) extras.push(L.fuel);
+  if (L.gearbox) extras.push(L.gearbox);
+  if (L.budget_month) extras.push(`${fmtBRL(L.budget_month)}/mês`);
+  if (L.cep) extras.push(`CEP ${L.cep}`);
+  const prios=(L.priorities||[]).slice().sort();
+  const sugg=(L.suggested_prios||[]).filter(p=>!prios.includes(p)).slice().sort();
+  const html=[
+    ...extras.map(t=>`<span class="pill">${sanitize(t)}</span>`),
+    ...prios.map(t=>`<span class="pill selected" data-tag="${sanitize(t)}">${sanitize(t)}</span>`),
+    ...sugg.map(t=>`<span class="pill option" data-tag="${sanitize(t)}">${sanitize(t)} +</span>`)
+  ].join("");
+  autoTags.innerHTML = html || "<span class='small'>Sem tags ainda.</span>";
+  autoTags.querySelectorAll('.pill.selected').forEach(el=>{
+    el.onclick=()=>{
+      const tag=el.getAttribute('data-tag');
+      const idx=L.priorities.indexOf(tag);
+      if(idx>=0) L.priorities.splice(idx,1);
+      autoScoreAndSave(); renderTags(); updateLeadSnapshot();
+    };
+  });
+  autoTags.querySelectorAll('.pill.option').forEach(el=>{
+    el.onclick=()=>{
+      const tag=el.getAttribute('data-tag');
+      L.priorities=L.priorities||[];
+      if(!L.priorities.includes(tag)) L.priorities.push(tag);
+      autoScoreAndSave(); renderTags(); updateLeadSnapshot();
+    };
+  });
 }
 
 /* ================== CRM / ANALYTICS ================== */
@@ -708,11 +754,14 @@ function setText(id,val){ const el=document.getElementById(id); if(el) el.textCo
 
 /* ================== EXPORT / CLEAR ================== */
 function exportCsv(){
-  const headers=["id","status","name","phone","new_or_used","model_hint","budget_cash","budget_month","use_case","annual_km","priorities","fuel","gearbox","cep","score","next_followup_at","followup_note","created_at","updated_at"];
+  const headers=["id","status","name","phone","new_or_used","model_hint","budget_cash","budget_month","use_case","annual_km","priorities","suggested_prios","recommendations","fuel","gearbox","cep","score","next_followup_at","followup_note","created_at","updated_at"];
   const rows=[headers.join(",")];
   crm.forEach(L=>{
     const row=headers.map(h=>{
-      const v=(h==="priorities")? (L.priorities||[]).join("|") : (L[h]??"");
+      const v=(h==="priorities")? (L.priorities||[]).join("|")
+        : (h==="suggested_prios")? (L.suggested_prios||[]).join("|")
+        : (h==="recommendations")? (L.recommendations||[]).map(r=>`${r.model}:${r.price}`).join("|")
+        : (L[h]??"");
       return `"${String(v).replace(/"/g,'""')}"`;
     }).join(",");
     rows.push(row);
