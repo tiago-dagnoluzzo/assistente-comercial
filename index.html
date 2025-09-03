@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>Consultor de Automóveis — IA (Gemini Prompt Editor)</title>
+<title>Consultor de Automóveis — IA (Tempo Real + CRM + Templates + Radar + ICS)</title>
 <style>
 :root{
   --bg:#0b1020; --panel:#0f172a; --muted:#93adc4; --text:#e6eef7; --border:#1f2a44;
@@ -28,7 +28,7 @@ a{color:var(--accent)}
 .tab{background:#0e152b;border:1px solid var(--border);color:var(--text);border-radius:10px;padding:8px 12px;cursor:pointer}
 .tab.active{background:linear-gradient(145deg,var(--accent),var(--accent-2));color:#0b1020;border-color:transparent;font-weight:700}
 main{max-width:1200px;margin:0 auto;padding:12px 20px 40px}
-.grid{display:grid;grid-template-columns:360px 1fr;gap:18px}
+.grid{display:grid;grid-template-columns:380px 1fr;gap:18px}
 .card{background:var(--panel);border:1px solid var(--border);border-radius:14px;padding:14px}
 h3{margin:0 0 10px}
 .input, textarea, select, input[type="color"]{
@@ -52,6 +52,8 @@ label{display:block;margin-bottom:6px;color:var(--muted)}
 .btn.secondary{background:transparent;color:var(--text)}
 .notice{font-size:12px;color:#ffd080}
 .debug{font-family:ui-monospace,Consolas,monospace;background:#0b1224;border:1px dashed #24304c;border-radius:10px;padding:10px;white-space:pre-wrap;max-height:180px;overflow:auto}
+.pill{display:inline-block;border:1px solid var(--border);padding:2px 8px;border-radius:999px;margin-right:6px;margin-bottom:6px;background:#0d1430;color:var(--muted);font-size:12px}
+.canvasWrap{margin-top:10px;background:#0b1224;border:1px solid var(--border);border-radius:10px;padding:10px}
 </style>
 </head>
 <body>
@@ -60,7 +62,7 @@ label{display:block;margin-bottom:6px;color:var(--muted)}
     <div class="brand">
       <div class="logo">🚗</div>
       <div class="name">Consultor de Automóveis — IA</div>
-      <span class="badge">Prompt Editor</span>
+      <span class="badge">Tempo Real + Templates + Radar</span>
     </div>
     <div class="spacer"></div>
     <div class="row">
@@ -96,20 +98,37 @@ label{display:block;margin-bottom:6px;color:var(--muted)}
         <label>Follow-up (data/hora)</label>
         <input id="nextFollow" class="input" type="datetime-local"/>
         <input id="followNote" class="input" placeholder="Observação do follow-up"/>
-        <button class="btn secondary" id="btnSetFollow">Salvar follow-up</button>
+        <div class="row">
+          <button class="btn secondary" id="btnSetFollow">Salvar follow-up</button>
+          <button class="btn secondary" id="btnDownloadIcs">Baixar .ics</button>
+        </div>
         <p id="followWarn" class="notice hidden">⚠️ Você tem follow-ups vencidos na aba Analytics.</p>
         <hr/>
-        <label><input type="checkbox" id="autoAppt" /> Agendar automaticamente se a IA sugerir</label>
-        <p class="small">O agendamento será criado ao detectar “vamos agendar”, “marcar” + uma data/horário reconhecível.</p>
+        <label><input type="checkbox" id="autoAppt" /> Agendar automaticamente se a IA sugerir (gera .ics)</label>
+        <p class="small">Frases como “vamos agendar amanhã 15:00” serão detectadas e o follow-up criado automaticamente com um arquivo .ics.</p>
         <hr/>
         <h3>Debug (JSON extraído pela IA)</h3>
         <div id="debugBox" class="debug small">—</div>
+        <hr/>
+        <h3>Tags automáticas</h3>
+        <div id="autoTags"></div>
+        <div class="canvasWrap">
+          <label class="small">Matriz de prioridades (radar)</label>
+          <canvas id="radar" width="320" height="240"></canvas>
+        </div>
+        <hr/>
+        <h3>Templates de mensagem</h3>
+        <div class="row">
+          <button class="btn secondary" id="tplWhats">Copiar WhatsApp</button>
+          <button class="btn secondary" id="tplEmail">Copiar Email</button>
+        </div>
+        <textarea id="tplPreview" class="input" rows="6" placeholder="Prévia do template aqui..."></textarea>
       </aside>
 
       <div class="card">
         <div id="messages" class="messages"></div>
         <div class="composer">
-          <input id="userInput" class="input" placeholder="Ex.: Quero um carro econômico para família de 4, até 150 mil parcelado" />
+          <input id="userInput" class="input" placeholder="Ex.: Carro econômico para família, até R$ 150.000, automático" />
           <button class="btn" id="sendBtn">Enviar</button>
         </div>
       </div>
@@ -158,35 +177,25 @@ label{display:block;margin-bottom:6px;color:var(--muted)}
   <section id="prompt" class="tab-content hidden">
     <div class="card">
       <h3>Prompt do Gemini (System)</h3>
-      <p class="small">Personalize o comportamento do consultor. Você pode usar variáveis simples: <code>{{biz}}</code>, <code>{{agent}}</code>.</p>
-      <textarea id="promptEditor" class="input" rows="14"></textarea>
+      <p class="small">Personalize o comportamento do consultor. Variáveis: <code>{{biz}}</code>, <code>{{agent}}</code>.</p>
+      <textarea id="promptEditor" class="input" rows="22"></textarea>
       <div class="row" style="margin-top:8px">
         <button class="btn" id="savePrompt">Salvar Prompt</button>
         <button class="btn secondary" id="resetPrompt">Restaurar padrão</button>
       </div>
       <hr/>
       <label>Agendamento inteligente</label>
-      <p class="small">Frases como “vamos agendar amanhã 15:00” serão detectadas e o follow-up criado automaticamente (se a caixa na aba Chat estiver marcada).</p>
+      <p class="small">Se a IA sugerir “agendar” com data/horário, criamos o follow-up automaticamente e baixamos um .ics.</p>
     </div>
   </section>
 </main>
 
 <script>
 /* ================== ESTADO & STORAGE ================== */
-const LS = { SETTINGS:"auto_settings", TRAINING:"auto_training", CRM:"auto_crm", PROMPT:"auto_prompt" };
+const LS = { SETTINGS:"auto_settings", CRM:"auto_crm", PROMPT:"auto_prompt" };
 let crm = JSON.parse(localStorage.getItem(LS.CRM)||"null") || [];
-let settings = JSON.parse(localStorage.getItem(LS.SETTINGS)||"null") || {
-  agent:"Tiago", biz:"Consultoria Auto Tiago"
-};
-let customPrompt = localStorage.getItem(LS.PROMPT) || `Você é um consultor de automóveis da {{biz}} chamado {{agent}}.
-Regras:
-- Tom consultivo, objetivo e claro; responda SEM colchetes, marcadores de template ou placeholders.
-- Sempre que possível, ofereça 2–3 opções já completas (modelo/ano, consumo aproximado, pontos fortes/fracos, custo recorrente típico), sem “inserir dados”.
-- Quando houver intenção de compra real, solicite nome e telefone para formalizar.
-- Explore prioridades do cliente (consumo, conforto, tecnologia, desempenho, espaço, segurança), uso (cidade/rodovia/app/família), orçamento (à vista e mensal) e CEP (para noção de seguro).
-- Se o cliente mencionar “agendar”, confirme uma data/horário.
-Formate respostas em parágrafos curtos e com listas simples quando útil.
-`;
+let settings = JSON.parse(localStorage.getItem(LS.SETTINGS)||"null") || { agent:"Tiago", biz:"Consultoria Auto Tiago" };
+let customPrompt = localStorage.getItem(LS.PROMPT) || masterPrompt();
 
 /* ================== UI BÁSICA / TABS ================== */
 const tabs = document.querySelectorAll(".tab");
@@ -210,6 +219,12 @@ const testEP = document.getElementById("testEP");
 const epStatus = document.getElementById("epStatus");
 const autoApptEl = document.getElementById("autoAppt");
 const debugBox = document.getElementById("debugBox");
+const autoTags = document.getElementById("autoTags");
+const radar = document.getElementById("radar");
+const tplWhats = document.getElementById("tplWhats");
+const tplEmail = document.getElementById("tplEmail");
+const tplPreview = document.getElementById("tplPreview");
+const btnDownloadIcs = document.getElementById("btnDownloadIcs");
 
 document.getElementById("btnSaveLead").onclick = onSaveLead;
 document.getElementById("btnNewLead").onclick = onNewLead;
@@ -220,6 +235,12 @@ document.getElementById("search").oninput = renderCRM;
 testEP.onclick = doTestEP;
 sendBtn.onclick = handleSend;
 userInput.addEventListener("keydown", e=> (e.key==="Enter") && handleSend());
+tplWhats.onclick = ()=> copyTemplate("whats");
+tplEmail.onclick = ()=> copyTemplate("email");
+btnDownloadIcs.onclick = ()=>{
+  const ics = generateICS(currentLead);
+  downloadFile(ics, "followup.ics", "text/calendar;charset=utf-8");
+};
 
 /* ================== PROMPT EDITOR ================== */
 const promptEditor = document.getElementById("promptEditor");
@@ -232,24 +253,13 @@ savePrompt.onclick = ()=>{
 };
 resetPrompt.onclick = ()=>{
   localStorage.removeItem(LS.PROMPT);
-  customPrompt = undefined;
+  customPrompt = masterPrompt();
   loadPromptEditor();
-  alert("Prompt restaurado.");
+  alert("Prompt restaurado ao padrão mestre.");
 };
-function loadPromptEditor(){
-  const p = localStorage.getItem(LS.PROMPT) || defaultPrompt();
-  promptEditor.value = p;
-}
-function defaultPrompt(){ return `Você é um consultor de automóveis da {{biz}} chamado {{agent}}.
-Regras:
-- Tom consultivo, objetivo e claro; responda SEM colchetes, marcadores de template ou placeholders.
-- Sempre que possível, ofereça 2–3 opções já completas (modelo/ano, consumo aproximado, pontos fortes/fracos, custo recorrente típico), sem “inserir dados”.
-- Quando houver intenção de compra real, solicite nome e telefone para formalizar.
-- Explore prioridades do cliente (consumo, conforto, tecnologia, desempenho, espaço, segurança), uso (cidade/rodovia/app/família), orçamento (à vista e mensal) e CEP (para noção de seguro).
-- Se o cliente mencionar “agendar”, confirme uma data/horário.
-Formate respostas em parágrafos curtos e com listas simples quando útil.`; }
+function loadPromptEditor(){ promptEditor.value = localStorage.getItem(LS.PROMPT) || customPrompt || masterPrompt(); }
 
-/* ================== LEADS / CHAT ================== */
+/* ================== LEAD & CHAT ================== */
 let currentLead = newLead();
 let chatStarted=false;
 
@@ -266,12 +276,19 @@ function newLead(){
 }
 
 function appendMsg(sender, text){
+  const clean = sanitize(text);
   const div = document.createElement("div"); 
   div.className = "msg " + (sender === "bot" ? "bot" : "user"); 
-  div.textContent = sanitize(text);
+  div.textContent = clean;
   messagesEl.appendChild(div); messagesEl.scrollTop = messagesEl.scrollHeight;
+
+  // EXTRAÇÃO HEURÍSTICA EM TEMPO REAL
+  if (sender === "user" || sender === "bot"){
+    const changed = heuristicExtract(clean);
+    if (changed) { autoScoreAndSave(); updateLeadSnapshot(); renderTags(); renderRadar(); }
+  }
 }
-function bot(t){ appendMsg("bot", t); currentLead.transcript.push({who:settings.agent, text:sanitize(t), ts:new Date().toISOString()}); }
+function bot(t){ appendMsg("bot", t); currentLead.transcript.push({who:"Consultor", text:sanitize(t), ts:new Date().toISOString()}); }
 function user(t){ appendMsg("user", t); currentLead.transcript.push({who:"Cliente", text:sanitize(t), ts:new Date().toISOString()}); }
 
 function sanitize(s){
@@ -286,35 +303,49 @@ function sanitize(s){
 async function handleSend(){
   const t = userInput.value.trim(); if (!t) return; userInput.value = "";
   user(t);
-  if (!chatStarted){ chatStarted = true; bot("Perfeito! Para começar, novo ou usado? E qual seu orçamento (à vista e/ou mensal) e uso principal?"); return; }
+  if (!chatStarted){ 
+    chatStarted = true; 
+    bot("Perfeito! Para começar, novo ou usado? E qual seu orçamento (à vista e/ou mensal) e uso principal?");
+    return; 
+  }
 
-  // 1) Chama a IA com seu prompt personalizado
+  // 1) Chama a IA com seu prompt personalizado (mestre)
   const sys = renderPrompt();
   const convo = currentLead.transcript.slice(-20);
   const aiResp = await callChat(sys, convo);
-  if (aiResp.ok){ bot(aiResp.text||"(sem resposta)"); } else { bot("Falha no endpoint: "+aiResp.status); return; }
+  if (aiResp.ok){ 
+    bot(aiResp.text||"(sem resposta)"); 
+    // EXTRACTION oculta
+    const embedded = parseEmbeddedExtraction(aiResp.text||"");
+    if (embedded){ mergeLeadData(embedded); autoScoreAndSave(); updateLeadSnapshot(); renderTags(); renderRadar(); debugBox.textContent = JSON.stringify(embedded,null,2); }
+  } else { 
+    bot("Falha no endpoint: "+aiResp.status); return; 
+  }
 
-  // 2) Extrai dados estruturados (JSON) e mescla no lead
+  // 2) Extrator auxiliar
   const extracted = await aiExtractLead(convo);
-  if (extracted){ mergeLeadData(extracted); autoScoreAndSave(); }
+  if (extracted){ mergeLeadData(extracted); autoScoreAndSave(); updateLeadSnapshot(); renderTags(); renderRadar(); }
 
-  // 3) Se IA sugerir agendamento e "autoAppt" estiver ligado, cria automaticamente
-  if (autoApptEl.checked && detectScheduleIntent(aiResp.text||"")){
-    const when = parseDateTimePtBR(aiResp.text) || nearestWorkSlot();
+  // 3) Agendamento automático
+  if (autoApptEl.checked){
+    const whenByEmbed = parseScheduleFrom(extracted||embedded||{});
+    const whenByText = parseDateTimePtBR(aiResp.text||"");
+    const when = whenByEmbed || whenByText;
     if (when){
       const note = await aiFollowupNote(convo);
       currentLead.next_followup_at = when.toISOString();
       currentLead.followup_note = note || defaultFollowNote();
       autoScoreAndSave(); updateLeadSnapshot();
-      bot(`Agendado automaticamente para ${when.toLocaleString()}.`);
-    }else{
-      bot("Posso agendar para você. Qual data e horário preferidos? (ex.: 12/09 14:30)");
+      // Baixar .ics automaticamente
+      const ics = generateICS(currentLead);
+      downloadFile(ics, "followup.ics", "text/calendar;charset=utf-8");
+      bot(`Agendado automaticamente para ${when.toLocaleString()} (arquivo .ics baixado).`);
     }
   }
 }
 
 function renderPrompt(){
-  const tpl = (localStorage.getItem(LS.PROMPT) || customPrompt || defaultPrompt());
+  const tpl = (localStorage.getItem(LS.PROMPT) || customPrompt || masterPrompt());
   return tpl.replace(/\{\{biz\}\}/g, settings.biz).replace(/\{\{agent\}\}/g, settings.agent);
 }
 
@@ -329,30 +360,118 @@ async function callChat(system, messages){
   }catch(e){ return { ok:false, status:"ERR", text:String(e.message) }; }
 }
 
-/* ============ EXTRAÇÃO DE DADOS POR IA (JSON) ============ */
+/* ============ EXTRAÇÃO HEURÍSTICA (local) ============ */
+function heuristicExtract(text){
+  let changed=false;
+  const L=currentLead;
+  const low=text.toLowerCase();
+
+  // telefone
+  const tel = text.match(/(\+?\d[\d\s\-\.]{8,}\d)/);
+  if (tel){ const d = tel[0].replace(/\D/g,""); if (d.length>=10 && d!==L.phone){ L.phone=d; L.status = L.status==="Novo"?"Qualificado":L.status; changed=true; } }
+
+  // CEP
+  const cep = text.match(/\b\d{5}[- ]?\d{3}\b/);
+  if (cep){ const d=cep[0].replace(/\D/g,""); if (d!==L.cep){ L.cep=d; changed=true; } }
+
+  // orçamento (mensal vs à vista)
+  const money = text.match(/(?:r\$\s*)?(\d{1,3}(?:[\.\s]\d{3})+|\d+)(?:[,\.]\d{2})?/i);
+  if (money){
+    const raw = money[0].replace(/[^\d,\.]/g,"").replace(/\./g,"").replace(",","."); 
+    const val = String(parseFloat(raw||"0")||"");
+    if (/m[eê]nsal|parcela|por m[eê]s|mês|mes/.test(low)){
+      if (val && val!==L.budget_month){ L.budget_month = val; changed=true; }
+    } else if (/à vista|a vista|avista|àv ista|a-vista/.test(low)){
+      if (val && val!==L.budget_cash){ L.budget_cash = val; changed=true; }
+    } else {
+      if (!L.budget_month && val){ L.budget_month = val; changed=true; }
+      else if (!L.budget_cash && val){ L.budget_cash = val; changed=true; }
+    }
+  }
+
+  // novo/usado
+  if (/novo|zero/.test(low) && L.new_or_used!=="Novo"){ L.new_or_used="Novo"; changed=true; }
+  if (/(usado|semi[-\s]?novo)/.test(low) && L.new_or_used!=="Usado"){ L.new_or_used="Usado"; changed=true; }
+
+  // combustível
+  if (/h[ií]brido/.test(low) && L.fuel!=="Híbrido"){ L.fuel="Híbrido"; changed=true; }
+  if (/el[eé]trico/.test(low) && L.fuel!=="Elétrico"){ L.fuel="Elétrico"; changed=true; }
+  if (/flex/.test(low) && L.fuel!=="Flex"){ L.fuel="Flex"; changed=true; }
+
+  // câmbio
+  if (/autom[aá]tico/.test(low) && L.gearbox!=="Automático"){ L.gearbox="Automático"; changed=true; }
+  if (/manual/.test(low) && L.gearbox!=="Manual"){ L.gearbox="Manual"; changed=true; }
+
+  // prioridades
+  const prios=[];
+  if (/consumo|econ[oô]mico/.test(low)) prios.push("consumo");
+  if (/conforto/.test(low)) prios.push("conforto");
+  if (/tecnologia|multim[ií]dia|adas/.test(low)) prios.push("tecnologia");
+  if (/desempenho|pot[eê]ncia|motor/.test(low)) prios.push("desempenho");
+  if (/espa[çc]o|porta-?malas|fam[ií]lia/.test(low)) prios.push("espaço");
+  if (/seguran[çc]a|airbag|esc|aba|adas/.test(low)) prios.push("segurança");
+  if (prios.length){
+    const set = new Set([...(L.priorities||[]), ...prios]);
+    const arr = Array.from(set);
+    if (arr.join("|") !== (L.priorities||[]).join("|")){ L.priorities = arr; changed=true; }
+  }
+
+  // uso / km/ano
+  if (/cidade|urbano/.test(low) && (!L.use_case || !/cidade|urbano/i.test(L.use_case))) { L.use_case = "Cidade"; changed=true; }
+  if (/rodovia|estrada/.test(low) && (!L.use_case || !/rodovia|estrada/i.test(L.use_case))) { L.use_case = "Rodovia"; changed=true; }
+  const km = text.match(/\b(\d{4,6})\s*(km|quil[oô]metros?)\b/i);
+  if (km && !L.annual_km){ L.annual_km = km[1]; changed=true; }
+
+  // modelo hint
+  const model = text.match(/\b([A-ZÁÀÂÃÉÊÍÓÔÕÚÇ][a-z0-9]+(?:\s+[A-Z0-9][a-z0-9]+){0,2})\s?(?:\d{4}|1\.0|1,0|2\.0|2,0)?\b/);
+  if (model){
+    const mh = model[0];
+    if (mh && mh.length>2 && (!L.model_hint || L.model_hint.indexOf(mh)===-1)){
+      L.model_hint = (L.model_hint? (L.model_hint + "; "):"") + mh;
+      changed=true;
+    }
+  }
+
+  // agendamento detectado
+  const dt = parseDateTimePtBR(text);
+  if (dt && autoApptEl.checked && !L.next_followup_at){
+    L.next_followup_at = dt.toISOString();
+    L.followup_note = defaultFollowNote();
+    changed=true;
+    const ics = generateICS(L);
+    downloadFile(ics, "followup.ics", "text/calendar;charset=utf-8");
+  }
+
+  if (changed){ L.updated_at = new Date().toISOString(); }
+  return changed;
+}
+
+/* ============ EXTRAÇÃO POR IA (JSON) ============ */
+function parseEmbeddedExtraction(text){
+  const m = text.match(/<!--EXTRACTION([\s\S]*?)EXTRACTION-->/i);
+  if (!m) return null;
+  const raw = m[1].trim();
+  try{ const json = JSON.parse(raw); return json; }
+  catch(e){ return null; }
+}
+function parseScheduleFrom(obj){
+  if (!obj || !obj.schedule_text) return null;
+  return parseDateTimePtBR(obj.schedule_text);
+}
+
 async function aiExtractLead(messages){
   try{
     const convo = messages.map(m=>`${m.who}: ${m.text}`).join("\n");
-    const sys = `Apenas devolva JSON válido (sem texto extra) com os campos:
-{
- "name": string|null, "phone": string|null,
- "new_or_used": "Novo"|"Usado"|null,
- "model_hint": string|null,
- "budget_cash": string|null, "budget_month": string|null,
- "use_case": string|null, "annual_km": string|null,
- "priorities": string[]|null,
- "fuel": string|null, "gearbox": string|null, "cep": string|null
-}
-- Telefone apenas dígitos (10–14). Não invente valores.`;
-
+    const sys = extractorPrompt();
     const r = await fetch(endpointEl.value||"/api/chat_gemini",{
       method:"POST", headers:{"Content-Type":"application/json"},
       body: JSON.stringify({ system: sys, messages:[{who:"Transcrição", text: convo}] })
     });
     const j = await r.json();
     const raw = sanitize(j.text||"");
-    let data=null; try{ data = JSON.parse(raw); } catch(e){ /* pode ser que a IA traga code fences; tenta limpar */ 
-      const m = raw.match(/\{[\s\S]*\}$/); if (m){ try{ data = JSON.parse(m[0]); }catch(_){} }
+    let data=null; 
+    try{ data = JSON.parse(raw); } catch(e){ 
+      const q = raw.match(/\{[\s\S]*\}$/); if (q){ try{ data = JSON.parse(q[0]); }catch(_){} }
     }
     debugBox.textContent = data? JSON.stringify(data,null,2) : "(sem JSON válido)";
     return data||null;
@@ -366,28 +485,95 @@ function mergeLeadData(p){
   const L=currentLead;
   const assign = (k)=>{ if (p[k]) L[k]=p[k]; };
   ["name","phone","new_or_used","model_hint","budget_cash","budget_month","use_case","annual_km","fuel","gearbox","cep"].forEach(assign);
-  if (Array.isArray(p.priorities) && p.priorities.length){ L.priorities = p.priorities; }
+  if (Array.isArray(p.priorities) && p.priorities.length){ L.priorities = Array.from(new Set([...(L.priorities||[]), ...p.priorities])); }
   L.updated_at = new Date().toISOString();
-  updateLeadSnapshot();
 }
 
-function autoScoreAndSave(){
-  currentLead.score = scoreLead(currentLead);
-  const i = crm.findIndex(x=>x.id===currentLead.id);
-  if (i>=0) crm[i]=currentLead; else crm.push(currentLead);
-  localStorage.setItem(LS.CRM, JSON.stringify(crm));
-  renderCRM();
+/* ================== PROMPTS ================== */
+function masterPrompt(){
+return `Você é {{agent}}, consultor de automóveis da {{biz}}. Sua missão é ajudar o cliente a definir o carro ideal considerando necessidades, orçamento, custo total de propriedade (TCO) e preferências pessoais — sem empurrar produtos. Atue com clareza, objetividade e gentileza, sempre oferecendo valor prático.
+
+ESTILO
+- Tom: consultivo, empático, direto ao ponto.
+- Linguagem simples; quando usar termos técnicos, defina em 1 linha.
+- NUNCA use placeholders, colchetes, “preencha aqui” ou campos vazios. Entregue texto pronto.
+- Parágrafos curtos + listas simples na comparação.
+- Responda no mesmo idioma do cliente (padrão: PT-BR).
+
+DESCOBERTA (colete com naturalidade)
+1) Novo ou usado; modelos/anos em mente.
+2) Orçamento (à vista e/ou mensal) e entrada.
+3) Uso principal (cidade/rodovia/app/família) e km/ano.
+4) Prioridades: consumo, conforto, tecnologia, desempenho, espaço/porta-malas, segurança, manutenção.
+5) Combustível (flex/híbrido/elétrico) e câmbio (manual/automático).
+6) CEP (estimativa de seguro/IPVA).
+7) Nome e telefone quando houver intenção real (para formalizar proposta/contato).
+8) Se houver interesse, ofereça agendar conversa rápida com data/horário.
+
+RECOMENDAÇÕES (sempre que possível)
+- Traga 2–3 opções adequadas ao perfil. Para cada uma:
+  • Modelo/ano típico, pontos fortes e limitações
+  • Consumo aproximado (urbano/rodoviário quando fizer sentido)
+  • Itens de segurança relevantes (ex.: 6 airbags, ESC, ADAS)
+  • Manutenção estimada/intervalos; seguro (noção qualitativa: baixo/médio/alto)
+  • TCO resumido (frase curta: combustível + manutenção + seguro + depreciação)
+- Explique por que atende às prioridades do cliente.
+- Se orçamento estiver justo, ofereça variação (ano anterior/versão) para caber no bolso.
+- Evite promessas absolutas; use estimativas e condicionais.
+
+OBJEÇÕES & REDIRECIONAMENTOS
+- Preço alto → versões/anos alternativos; ajuste de equipamentos.
+- Consumo → economia real vs. uso; híbridos/compactos eficientes.
+- Manutenção → rede, intervalos, peças.
+- Seguro → varia por perfil/CEP; classifique baixo/médio/alto.
+- Espaço → compare SUVs compactos x sedans/monovolumes.
+- Depreciação → populares perdem menos valor.
+
+AGENDAMENTO
+- Sugira agendar 10–15 min.
+- Se o cliente der data/horário, confirme.
+- Se não der, pergunte: “Qual dia e horário prefere? (ex.: 12/09 14:30)”.
+- Gere uma nota curta de follow-up com objetivo do próximo passo.
+
+FORMATAÇÃO
+- Comece com um resumo do que entendeu (X e Y; prioridade Z).
+- Em seguida, lista comparativa das 2–3 opções.
+- Finalize com próximos passos (ex.: “Posso formalizar a proposta e agendar 10 min?”).
+- NUNCA retorne placeholders/colchetes/templates vazios.
+
+SEÇÃO OCULTA DE EXTRAÇÃO (opcional, apenas se houver dados novos)
+Inclua AO FINAL da resposta, sem afetar o texto para o cliente, um bloco:
+<!--EXTRACTION
+{"name":null,"phone":null,"new_or_used":null,"model_hint":null,"budget_cash":null,"budget_month":null,"use_case":null,"annual_km":null,"priorities":[],"fuel":null,"gearbox":null,"cep":null,"schedule_text":null}
+EXTRACTION-->
+Regras: apenas se tiver algo novo; apenas JSON válido (uma linha); sem comentários; "schedule_text" deve conter uma frase de data/horário quando o cliente informar.`;
 }
 
-/* ================== AGENDAMENTO ================== */
+function extractorPrompt(){
+return `Apenas devolva JSON válido (sem texto extra) com os campos:
+{"name":null,"phone":null,"new_or_used":null,"model_hint":null,"budget_cash":null,"budget_month":null,"use_case":null,"annual_km":null,"priorities":[],"fuel":null,"gearbox":null,"cep":null,"schedule_text":null}
+Regras:
+- Leia a transcrição completa fornecida.
+- Telefone apenas dígitos (10–14).
+- Não invente valores. Se não souber, use null.
+- Sem code fences nem comentários.`;
+}
+
+function followupNotePrompt(){
+return `Gere UMA linha objetiva de nota para o follow-up, sem emojis e sem informações inventadas.
+Foque em orçamento, prioridades (ex.: consumo/espaço/segurança) e próximos passos (ex.: comparar duas opções, confirmar prazo/seguro).
+Retorne apenas a frase final.`;
+}
+
+/* ================== AGENDAMENTO & UTIL ================== */
 function defaultFollowNote(){
   const L=currentLead;
-  return `Contato com ${L.name||"Lead"}: validar orçamento R$${L.budget_month||L.budget_cash||"?"}/mês, prioridades ${ (L.priorities||[]).slice(0,3).join("/")||"?" }.`;
+  return `Contato com ${L.name||"Lead"}: validar orçamento R$${L.budget_month||L.budget_cash||"?"}/mês, prioridades ${(L.priorities||[]).slice(0,3).join("/")||"?"}.`;
 }
 async function aiFollowupNote(messages){
   try{
     const convo = messages.map(m=>`${m.who}: ${m.text}`).join("\n");
-    const sys = `Gerar UMA linha breve de nota para follow-up (sem emojis), com objetivo claro para o próximo contato.`;
+    const sys = followupNotePrompt();
     const r = await fetch(endpointEl.value||"/api/chat_gemini",{
       method:"POST", headers:{"Content-Type":"application/json"},
       body: JSON.stringify({ system: sys, messages:[{who:"Transcrição", text: convo}] })
@@ -396,47 +582,141 @@ async function aiFollowupNote(messages){
     return sanitize(j.text||"").slice(0,240);
   }catch(e){ return ""; }
 }
-
-function detectScheduleIntent(t){
-  const s = t.toLowerCase();
-  return /(agendar|marcar|reuni[aã]o|ligação|ligacao|chamada)/.test(s);
+function generateICS(L){
+  const start = L.next_followup_at ? new Date(L.next_followup_at) : new Date(Date.now()+24*60*60*1000);
+  const end = new Date(start.getTime() + 30*60*1000);
+  const stamp = (d)=> d.getUTCFullYear()+String(d.getUTCMonth()+1).padStart(2,"0")+String(d.getUTCDate()).padStart(2,"0")+"T"+
+                          String(d.getUTCHours()).padStart(2,"0")+String(d.getUTCMinutes()).padStart(2,"0")+"00Z";
+  const uid = `${L.id}@consultor-auto-ia`;
+  const summary = `Follow-up ${L.name||"Lead"} • ${L.model_hint||""}`.trim();
+  const desc = `Contato: ${L.name||"Lead"} • Tel ${L.phone||"-"} • Perfil: ${L.new_or_used||"-"} ${L.model_hint||""} • Preferências: ${(L.priorities||[]).join(", ")||"-"} • Orçamento: R$${L.budget_month||L.budget_cash||"-"}`;
+  return `BEGIN:VCALENDAR
+VERSION:2.0
+PRODID:-//Consultor Auto IA//pt-BR
+BEGIN:VEVENT
+UID:${uid}
+DTSTAMP:${stamp(new Date())}
+DTSTART:${stamp(start)}
+DTEND:${stamp(end)}
+SUMMARY:${summary}
+DESCRIPTION:${desc}
+END:VEVENT
+END:VCALENDAR`;
+}
+function downloadFile(content, filename, type){
+  const blob = new Blob([content], {type});
+  const url = URL.createObjectURL(blob); 
+  const a=document.createElement("a"); a.href=url; a.download=filename; a.click(); URL.revokeObjectURL(url);
 }
 
-function parseDateTimePtBR(s){
-  const t = s.replace(/\s+às\s+/i," ").replace(/\s+as\s+/i," ").replace("h",":");
-  const m = t.match(/(\d{1,2})[\/\-](\d{1,2})(?:[\/\-](\d{2,4}))?(?:\s+(\d{1,2})(?::(\d{2}))?)?/);
-  if(!m) return null;
-  let [_,dd,MM,yyyy,hh,mm] = m;
-  const now = new Date();
-  const year = yyyy? (yyyy.length===2? 2000+parseInt(yyyy): parseInt(yyyy)) : now.getFullYear();
-  const date = new Date(year, parseInt(MM)-1, parseInt(dd), parseInt(hh||"9"), parseInt(mm||"0"));
-  return isNaN(date.getTime())? null : date;
-}
-function nearestWorkSlot(){
-  const d = new Date();
-  d.setMinutes(d.getMinutes()+90);
-  if (d.getHours() < 9) { d.setHours(9,0,0,0); }
-  if (d.getHours() > 18) { d.setDate(d.getDate()+1); d.setHours(9,0,0,0); }
-  return d;
+/* ================== TEMPLATES DE MENSAGEM ================== */
+function copyTemplate(kind){
+  const L = currentLead;
+  const resumo = `${L.new_or_used||"—"} ${L.model_hint||""}`.trim();
+  const prios = (L.priorities||[]).slice(0,3).join(" / ")||"suas prioridades";
+  const valor = L.budget_month? `R$ ${L.budget_month}/mês` : (L.budget_cash? `R$ ${L.budget_cash} à vista` : "valor a definir");
+  const quando = L.next_followup_at ? new Date(L.next_followup_at).toLocaleString() : "a combinar";
+  const base = `Olá ${L.name||""}! Aqui é ${settings.agent} da ${settings.biz}. 
+Pelo que entendi, busca ${resumo} com foco em ${prios}. Podemos alinhar 2–3 opções dentro de ${valor}. 
+Queremos falar ${quando}. Posso te mandar uma comparação com prós/contras e custo total estimado?`;
+
+  if (kind==="whats"){
+    const text = base + "\n\n— Enviado via Assistente IA";
+    tplPreview.value = text;
+    navigator.clipboard?.writeText(text);
+    alert("Template (WhatsApp) copiado!");
+  } else {
+    const assunto = `Proposta — ${resumo || "consultoria auto"}`;
+    const corpo = `${base}
+
+Resumo do perfil
+• Uso: ${L.use_case||"-"} • CEP: ${L.cep||"-"}
+• Prioridades: ${(L.priorities||[]).join(", ")||"-"}
+
+Próximos passos: envio 2–3 opções + agendamento ${quando}.`;
+    tplPreview.value = `Assunto: ${assunto}\n\n${corpo}`;
+    navigator.clipboard?.writeText(`${corpo}`);
+    alert("Template (Email) copiado (corpo).");
+  }
 }
 
+/* ================== RADAR DE PRIORIDADES ================== */
+function renderRadar(){
+  if (!radar) return;
+  const ctx = radar.getContext("2d");
+  ctx.clearRect(0,0,radar.width,radar.height);
+
+  const categories = ["consumo","conforto","tecnologia","desempenho","espaço","segurança"];
+  const present = (currentLead.priorities||[]).map(s=>s.toLowerCase());
+  const values = categories.map(c=> present.includes(c) ? 1 : 0);
+
+  const cx = radar.width/2, cy = radar.height/2, R = Math.min(cx,cy)-20;
+  const n = categories.length;
+  ctx.strokeStyle = "#274163"; ctx.fillStyle = "rgba(34,211,238,0.15)";
+  ctx.lineWidth = 1;
+
+  // grid
+  for (let g=0.25; g<=1.0; g+=0.25){
+    ctx.beginPath();
+    for (let i=0;i<n;i++){
+      const ang = -Math.PI/2 + i*2*Math.PI/n;
+      const x = cx + R*g*Math.cos(ang);
+      const y = cy + R*g*Math.sin(ang);
+      i===0? ctx.moveTo(x,y) : ctx.lineTo(x,y);
+    }
+    ctx.closePath(); ctx.stroke();
+  }
+
+  // axes + labels
+  ctx.fillStyle = "#93adc4";
+  categories.forEach((c,i)=>{
+    const ang = -Math.PI/2 + i*2*Math.PI/n;
+    const x = cx + R*Math.cos(ang);
+    const y = cy + R*Math.sin(ang);
+    ctx.beginPath(); ctx.moveTo(cx,cy); ctx.lineTo(x,y); ctx.strokeStyle="#24304c"; ctx.stroke();
+    const lx = cx + (R+10)*Math.cos(ang);
+    const ly = cy + (R+10)*Math.sin(ang);
+    ctx.textAlign = Math.cos(ang)>0.2? "left" : (Math.cos(ang)<-0.2? "right":"center");
+    ctx.fillText(c, lx, ly);
+  });
+
+  // polygon
+  ctx.beginPath();
+  values.forEach((v,i)=>{
+    const ang = -Math.PI/2 + i*2*Math.PI/n;
+    const x = cx + R*v*Math.cos(ang);
+    const y = cy + R*v*Math.sin(ang);
+    i===0? ctx.moveTo(x,y) : ctx.lineTo(x,y);
+  });
+  ctx.closePath();
+  ctx.fillStyle = "rgba(34,211,238,0.2)";
+  ctx.fill();
+  ctx.strokeStyle = "#22d3ee";
+  ctx.lineWidth = 2;
+  ctx.stroke();
+}
+
+/* ================== BOTÕES & AUXILIARES ================== */
 function onManualFollow(){
   const dt = document.getElementById("nextFollow").value;
   const note = document.getElementById("followNote").value;
   currentLead.next_followup_at = dt? new Date(dt).toISOString(): null;
   currentLead.followup_note = sanitize(note||"");
   autoScoreAndSave(); updateLeadSnapshot();
+  // Baixar .ics automaticamente se data definida
+  if (currentLead.next_followup_at){
+    const ics = generateICS(currentLead);
+    downloadFile(ics, "followup.ics", "text/calendar;charset=utf-8");
+  }
   alert("Follow-up salvo (local).");
 }
-
-/* ================== BOTÕES & AUXILIARES ================== */
 function onSaveLead(){ autoScoreAndSave(); alert("Lead salvo no CRM (local)."); }
 function onNewLead(){
   currentLead = newLead(); chatStarted=false;
   messagesEl.innerHTML = "";
   bot(`Olá! Eu sou ${settings.agent} da ${settings.biz}.`);
-  bot("Prefere carro novo ou usado? Qual orçamento e uso principal?");
-  updateLeadSnapshot();
+  bot("Prefere carro **novo** ou **usado**? Qual orçamento (à vista e/ou mensal) e uso principal?");
+  updateLeadSnapshot(); renderTags(); renderRadar();
 }
 
 async function doTestEP(){
@@ -453,7 +733,7 @@ async function doTestEP(){
   }
 }
 
-/* ================== SNAPSHOT / SCORE ================== */
+/* ================== SNAPSHOT / SCORE / TAGS ================== */
 function scoreLead(L){
   let s=0;
   if (L.new_or_used) s+=10;
@@ -479,9 +759,21 @@ function updateLeadSnapshot(){
     <p>Preferências: ${sanitize((L.priorities||[]).join(", "))||"-"} • ${L.fuel||"-"} • ${L.gearbox||"-"}</p>
     <p>Follow-up: ${L.next_followup_at? new Date(L.next_followup_at).toLocaleString():"-"} • ${sanitize(L.followup_note||"")}</p>
   `;
-  const warn = document.getElementById("followWarn");
   const overdue = crm.some(x=>x.next_followup_at && new Date(x.next_followup_at).getTime() < Date.now());
-  warn.classList.toggle("hidden", !overdue);
+  document.getElementById("followWarn").classList.toggle("hidden", !overdue);
+}
+
+/* ================== TAGS ================== */
+function renderTags(){
+  const L=currentLead;
+  const tags = [];
+  if (L.new_or_used) tags.push(L.new_or_used);
+  if (L.fuel) tags.push(L.fuel);
+  if (L.gearbox) tags.push(L.gearbox);
+  if ((L.priorities||[]).length) tags.push(...L.priorities);
+  if (L.budget_month) tags.push(`R$${L.budget_month}/mês`);
+  if (L.cep) tags.push(`CEP ${L.cep}`);
+  autoTags.innerHTML = tags.map(t=>`<span class="pill">${sanitize(t)}</span>`).join("") || "<span class='small'>Sem tags ainda.</span>";
 }
 
 /* ================== CRM / ANALYTICS ================== */
@@ -513,7 +805,7 @@ function renderCRM(){
     const id=e.target.getAttribute("data-id"); const L=crm.find(x=>x.id===id); if(!L) return;
     currentLead=JSON.parse(JSON.stringify(L));
     document.querySelector('.tab[data-tab="chat"]').click();
-    bot("Lead reaberto no chat."); updateLeadSnapshot();
+    bot("Lead reaberto no chat."); updateLeadSnapshot(); renderTags(); renderRadar();
   });
   tbody.querySelectorAll(".stage").forEach(b=> b.onclick = (e)=>{
     const id=e.target.getAttribute("data-id"); const L=crm.find(x=>x.id===id); if(!L) return;
@@ -565,7 +857,10 @@ function clearCrm(){
 /* ================== BOOT ================== */
 function boot(){
   document.querySelector('.tab[data-tab="chat"]').click();
-  onNewLead(); // cria um lead inicial e cumprimenta
+  onNewLead();
+  loadPromptEditor();
+  renderTags();
+  renderRadar();
 }
 boot();
 </script>
