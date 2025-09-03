@@ -387,6 +387,10 @@ function heuristicExtract(text){
   if (/autom[aá]tico/.test(low) && L.gearbox!=="Automático"){ L.gearbox="Automático"; changed=true; }
   if (/manual/.test(low) && L.gearbox!=="Manual"){ L.gearbox="Manual"; changed=true; }
 
+  // e-mail
+  const email = text.match(/[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}/i);
+  if (email && email[0] !== L.email){ L.email = email[0].toLowerCase(); changed = true; }
+
   // prioridades
     const prios=[];
     if (/consumo|econ[oô]mico/.test(low)) prios.push("consumo");
@@ -468,7 +472,7 @@ async function aiExtractLead(messages){
   function mergeLeadData(p){
     const L=currentLead;
     const assign = (k)=>{ if (p[k]) L[k]=p[k]; };
-    ["name","phone","new_or_used","model_hint","budget_cash","budget_month","use_case","annual_km","fuel","gearbox","cep"].forEach(assign);
+    ["name","phone","email","new_or_used","model_hint","budget_cash","budget_month","use_case","annual_km","fuel","gearbox","cep"].forEach(assign);
     if (Array.isArray(p.priorities) && p.priorities.length){
       L.suggested_prios = Array.from(new Set([...(L.suggested_prios||[]), ...p.priorities]));
     }
@@ -624,20 +628,27 @@ async function doTestEP(){
 }
 
 /* ================== SNAPSHOT / SCORE / TAGS ================== */
+const SCORE_WEIGHTS = {
+  name:10,
+  phone:30,
+  email:10,
+  budget:20,
+  profile:10,
+  priorities:10,
+  followup:5,
+  extras:5
+};
+
 function scoreLead(L){
   let s=0;
-  if (L.name) s+=10;
-  if (L.phone && L.phone.length>=10) s+=30;
-  if (L.email) s+=10;
-  if (L.new_or_used) s+=10;
-  if (L.model_hint) s+=10;
-  if (L.budget_cash||L.budget_month) s+=15;
-  if (L.use_case) s+=5;
-  if ((L.priorities||[]).length) s+=5;
-  if (L.next_followup_at) s+=5;
-  if (L.fuel) s+=5;
-  if (L.gearbox) s+=5;
-  if (L.cep) s+=5;
+  if (L.name) s+=SCORE_WEIGHTS.name;
+  if (L.phone && L.phone.replace(/\D/g,"").length>=10) s+=SCORE_WEIGHTS.phone;
+  else if (L.email) s+=SCORE_WEIGHTS.email; // contato alternativo
+  if (L.budget_cash||L.budget_month) s+=SCORE_WEIGHTS.budget;
+  if (L.new_or_used||L.model_hint) s+=SCORE_WEIGHTS.profile;
+  if ((L.priorities||[]).length) s+=SCORE_WEIGHTS.priorities;
+  if (L.next_followup_at) s+=SCORE_WEIGHTS.followup;
+  if (L.fuel||L.gearbox||L.cep) s+=SCORE_WEIGHTS.extras;
   return Math.min(100,s);
 }
 
@@ -646,7 +657,7 @@ function updateLeadSnapshot(){
   L.updated_at = new Date().toISOString();
   document.getElementById("leadSnapshot").innerHTML = `
     <div class="badge">${L.status}</div>
-    <p><strong>${sanitize(L.name)||"(sem nome)"} </strong> • Tel ${L.phone||"-"} • Score ${L.score||0}</p>
+    <p><strong>${sanitize(L.name)||"(sem nome)"} </strong> • Tel ${L.phone||"-"} • Email ${sanitize(L.email)||"-"} • Score ${L.score||0}</p>
     <p>${L.new_or_used||"-"} • ${sanitize(L.model_hint)||"-"}</p>
     <p>Orçamento: à vista ${fmtBRL(L.budget_cash)} • mensal ${fmtBRL(L.budget_month)}</p>
     <p>Uso: ${sanitize(L.use_case)||"-"} • km/ano ${L.annual_km||"-"} • CEP ${L.cep||"-"}</p>
@@ -697,7 +708,10 @@ function renderTags(){
 function renderCRM(){
   const tbody=document.querySelector("#crmTable tbody");
   const q=(document.getElementById("search").value||"").toLowerCase();
-  const list=crm.filter(L=> !q || (`${L.name} ${L.phone} ${L.status} ${L.model_hint}`).toLowerCase().includes(q));
+  const list=crm
+    .slice()
+    .sort((a,b)=> new Date(b.updated_at||b.created_at) - new Date(a.updated_at||a.created_at))
+    .filter(L=> !q || (`${L.name} ${L.phone} ${L.email} ${L.status} ${L.model_hint}`).toLowerCase().includes(q));
   setText("kpiLeads", crm.length);
   setText("kpiQual", crm.filter(x=>x.status==="Qualificado").length);
   setText("kpiRec",  crm.filter(x=>x.status==="Recomendação enviada").length);
@@ -754,7 +768,7 @@ function setText(id,val){ const el=document.getElementById(id); if(el) el.textCo
 
 /* ================== EXPORT / CLEAR ================== */
 function exportCsv(){
-  const headers=["id","status","name","phone","new_or_used","model_hint","budget_cash","budget_month","use_case","annual_km","priorities","suggested_prios","recommendations","fuel","gearbox","cep","score","next_followup_at","followup_note","created_at","updated_at"];
+  const headers=["id","status","name","phone","email","new_or_used","model_hint","budget_cash","budget_month","use_case","annual_km","priorities","suggested_prios","recommendations","fuel","gearbox","cep","score","next_followup_at","followup_note","created_at","updated_at"];
   const rows=[headers.join(",")];
   crm.forEach(L=>{
     const row=headers.map(h=>{
