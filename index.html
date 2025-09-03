@@ -82,6 +82,7 @@ label{display:block;margin-bottom:6px;color:var(--muted)}
     <button class="tab" data-tab="crm">CRM</button>
     <button class="tab" data-tab="analytics">Analytics</button>
     <button class="tab" data-tab="prompt">Prompt da IA</button>
+    <button class="tab" data-tab="config">Perguntas</button>
   </div>
 </div>
 
@@ -178,14 +179,41 @@ label{display:block;margin-bottom:6px;color:var(--muted)}
       <p class="small">Se a IA sugerir “agendar” com data/horário, podemos criar o follow-up automático (ative na aba Chat).</p>
     </div>
   </section>
+
+  <!-- Editor de Perguntas -->
+  <section id="config" class="tab-content hidden">
+    <div class="card">
+      <h3>Roteiro de Perguntas</h3>
+      <p class="small">Edite as perguntas que o chat fará em sequência (uma por linha).</p>
+      <textarea id="questionsEditor" class="input" rows="12"></textarea>
+      <div class="row" style="margin-top:8px">
+        <button class="btn" id="saveQuestions">Salvar</button>
+        <button class="btn secondary" id="resetQuestions">Restaurar padrão</button>
+      </div>
+    </div>
+  </section>
 </main>
 
 <script>
 /* ================== ESTADO & STORAGE ================== */
-const LS = { SETTINGS:"auto_settings", CRM:"auto_crm", PROMPT:"auto_prompt" };
+const LS = { SETTINGS:"auto_settings", CRM:"auto_crm", PROMPT:"auto_prompt", QUESTIONS:"auto_questions" };
 let crm = JSON.parse(localStorage.getItem(LS.CRM)||"null") || [];
 let settings = JSON.parse(localStorage.getItem(LS.SETTINGS)||"null") || { agent:"Tiago", biz:"Consultoria Auto Tiago" };
 let customPrompt = localStorage.getItem(LS.PROMPT) || masterPrompt();
+
+const defaultQuestions = [
+  "Carro novo ou usado? Algum modelo/ano em mente?",
+  "Qual é seu orçamento (à vista ou parcela mensal)?",
+  "Uso principal (cidade/rodovia/app/família)? Quilometragem/ano?",
+  "Prioridades (consumo, conforto, tecnologia, desempenho, espaço, segurança)?",
+  "Combustível preferido (flex/híbrido/eléctrico)? Câmbio (manual/automático)?",
+  "CEP para estimar seguro/IPVA?",
+  "Tem carro para troca?",
+  "Seu nome e telefone para contato?"
+];
+const closingMsg = "Obrigado! Em breve envio opções de carros conforme seu perfil.";
+let questions = JSON.parse(localStorage.getItem(LS.QUESTIONS)||"null") || defaultQuestions.slice();
+let questionIdx = 0;
 
 /* ================== UI BÁSICA / TABS ================== */
 const tabs = document.querySelectorAll(".tab");
@@ -198,6 +226,7 @@ tabs.forEach(b=> b.addEventListener("click", ()=>{
   if (b.dataset.tab === "crm") renderCRM();
   if (b.dataset.tab === "analytics") renderAnalytics();
   if (b.dataset.tab === "prompt") loadPromptEditor();
+  if (b.dataset.tab === "config") loadQuestionsEditor();
 }));
 
 /* ================== ELEMENTOS ================== */
@@ -238,9 +267,25 @@ resetPrompt.onclick = ()=>{
 };
 function loadPromptEditor(){ promptEditor.value = localStorage.getItem(LS.PROMPT) || customPrompt || masterPrompt(); }
 
+/* ================== PERGUNTAS (ROTEIRO) ================== */
+const questionsEditor = document.getElementById("questionsEditor");
+const saveQuestions = document.getElementById("saveQuestions");
+const resetQuestions = document.getElementById("resetQuestions");
+saveQuestions.onclick = ()=>{
+  questions = questionsEditor.value.split("\n").map(s=>s.trim()).filter(Boolean);
+  localStorage.setItem(LS.QUESTIONS, JSON.stringify(questions));
+  alert("Perguntas salvas!");
+};
+resetQuestions.onclick = ()=>{
+  localStorage.removeItem(LS.QUESTIONS);
+  questions = defaultQuestions.slice();
+  loadQuestionsEditor();
+  alert("Perguntas restauradas ao padrão.");
+};
+function loadQuestionsEditor(){ if (questionsEditor) questionsEditor.value = (questions||[]).join("\n"); }
+
 /* ================== LEAD & CHAT ================== */
 let currentLead = newLead();
-let chatStarted=false;
 
 function newLead(){
   return {
@@ -262,7 +307,7 @@ function appendMsg(sender, text){
   messagesEl.appendChild(div); messagesEl.scrollTop = messagesEl.scrollHeight;
 
     // EXTRAÇÃO HEURÍSTICA EM TEMPO REAL (local) — atualiza snapshot imediatamente
-    if (sender === "user" || sender === "bot"){
+    if (sender === "user"){
       heuristicExtract(clean);
       currentLead.updated_at = new Date().toISOString();
       autoScoreAndSave();
@@ -286,39 +331,37 @@ function appendMsg(sender, text){
     return isNaN(n)?"-":n.toLocaleString("pt-BR",{style:"currency",currency:"BRL"});
   }
 
-/* ================== FLUXO COM IA ================== */
+  function makeAck(p){
+    const parts=[];
+    if(p.new_or_used) parts.push(`carro ${p.new_or_used.toLowerCase()}`);
+    if(p.budget_cash) parts.push(`orçamento à vista ${fmtBRL(p.budget_cash)}`);
+    if(p.budget_month) parts.push(`parcela até ${fmtBRL(p.budget_month)}/mês`);
+    if(p.use_case) parts.push(`uso ${p.use_case.toLowerCase()}`);
+    if(p.priorities && p.priorities.length) parts.push(`foco em ${p.priorities.join("/")}`);
+    return parts.length? `Entendido: ${parts.join(", ")}.` : "Perfeito, obrigado.";
+  }
+
+/* ================== FLUXO DO CHAT ================== */
 async function handleSend(){
   const t = userInput.value.trim(); if (!t) return; userInput.value = "";
   user(t);
-  if (!chatStarted){ 
-    chatStarted = true; 
-    bot("Perfeito! Para começar, novo ou usado? E qual seu orçamento (à vista e/ou mensal) e uso principal?");
-    return; 
+  const convo = currentLead.transcript.slice(-20);
+  const extracted = await aiExtractLead(convo);
+  if (extracted){ mergeLeadData(extracted); autoScoreAndSave(); updateLeadSnapshot(); renderTags(); }
+
+  const ack = makeAck(extracted||{});
+  bot(ack);
+
+  if (questionIdx < questions.length-1){
+    questionIdx++;
+    bot(questions[questionIdx]);
+  } else {
+    bot(closingMsg);
   }
 
-  // 1) Chama a IA com seu prompt personalizado (mestre)
-  const sys = renderPrompt();
-  const convo = currentLead.transcript.slice(-20);
-  const aiResp = await callChat(sys, convo);
-    if (aiResp.ok){
-      bot(aiResp.text||"(sem resposta)");
-      // Tenta extrair seção oculta <!--EXTRACTION ... -->
-      const embedded = parseEmbeddedExtraction(aiResp.text||"");
-      if (embedded){ mergeLeadData(embedded); autoScoreAndSave(); updateLeadSnapshot(); renderTags(); debugBox.textContent = JSON.stringify(embedded,null,2); }
-    } else {
-      bot("Falha no endpoint: "+aiResp.status); return;
-    }
-
-  // 2) Extrai dados estruturados (JSON) via prompt auxiliar (backup robusto)
-    const extracted = await aiExtractLead(convo);
-    if (extracted){ mergeLeadData(extracted); autoScoreAndSave(); updateLeadSnapshot(); renderTags(); }
-
-  // 3) Agendamento automático se a IA sugeriu
-  if (autoApptEl.checked){
-    const whenByEmbed = parseScheduleFrom(extracted||embedded||{});
-    const whenByText = parseDateTimePtBR(aiResp.text||"");
-    const when = whenByEmbed || whenByText;
-    if (when){
+  if (autoApptEl.checked && extracted){
+    const when = parseScheduleFrom(extracted);
+    if (when && !currentLead.next_followup_at){
       const note = await aiFollowupNote(convo);
       currentLead.next_followup_at = when.toISOString();
       currentLead.followup_note = note || defaultFollowNote();
@@ -328,21 +371,6 @@ async function handleSend(){
   }
 }
 
-function renderPrompt(){
-  const tpl = (localStorage.getItem(LS.PROMPT) || customPrompt || masterPrompt());
-  return tpl.replace(/\{\{biz\}\}/g, settings.biz).replace(/\{\{agent\}\}/g, settings.agent);
-}
-
-async function callChat(system, messages){
-  try{
-    const r = await fetch(endpointEl.value||"/api/chat_gemini",{
-      method:"POST", headers:{"Content-Type":"application/json"},
-      body: JSON.stringify({ system, messages })
-    });
-    const j = await r.json();
-    return { ok:r.ok, status:r.status, text:j.text||"" };
-  }catch(e){ return { ok:false, status:"ERR", text:String(e.message) }; }
-}
 
 /* ============ EXTRAÇÃO HEURÍSTICA EM TEMPO REAL (local) ============ */
 function heuristicExtract(text){
@@ -435,13 +463,6 @@ function heuristicExtract(text){
 }
 
 /* ============ EXTRAÇÃO POR IA (JSON) ============ */
-function parseEmbeddedExtraction(text){
-  const m = text.match(/<!--EXTRACTION([\s\S]*?)EXTRACTION-->/i);
-  if (!m) return null;
-  const raw = m[1].trim();
-  try{ const json = JSON.parse(raw); return json; }
-  catch(e){ return null; }
-}
 function parseScheduleFrom(obj){
   if (!obj || !obj.schedule_text) return null;
   return parseDateTimePtBR(obj.schedule_text);
@@ -606,10 +627,11 @@ function onManualFollow(){
 }
 function onSaveLead(){ autoScoreAndSave(); alert("Lead salvo no CRM (local)."); }
 function onNewLead(){
-  currentLead = newLead(); chatStarted=false;
+  currentLead = newLead();
   messagesEl.innerHTML = "";
+  questionIdx = 0;
   bot(`Olá! Eu sou ${settings.agent} da ${settings.biz}.`);
-  bot("Prefere carro **novo** ou **usado**? Qual orçamento (à vista e/ou mensal) e uso principal?");
+  bot(questions[questionIdx]);
   updateLeadSnapshot();
   renderTags();
 }
@@ -793,6 +815,7 @@ function boot(){
   document.querySelector('.tab[data-tab="chat"]').click();
   onNewLead();
   loadPromptEditor();
+  loadQuestionsEditor();
   renderTags();
 }
 boot();
