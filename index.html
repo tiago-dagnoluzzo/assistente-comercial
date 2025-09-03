@@ -3,17 +3,19 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>Assistente Comercial — Consultor de Automóveis</title>
+<title>Consultor de Automóveis — IA (Gemini Prompt Editor)</title>
 <style>
 :root{
   --bg:#0b1020; --panel:#0f172a; --muted:#93adc4; --text:#e6eef7; --border:#1f2a44;
   --accent:#22d3ee; --accent-2:#34d399;
 }
 *{box-sizing:border-box} html,body{margin:0;height:100%}
-body{font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial,Helvetica,sans-serif;
+body{
+  font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial,Helvetica,sans-serif;
   background:radial-gradient(1100px 600px at -10% -10%, rgba(34,211,238,.12), transparent 60%),
              radial-gradient(1200px 800px at 110% -10%, rgba(52,211,153,.12), transparent 60%), var(--bg);
-  color:var(--text)}
+  color:var(--text)
+}
 a{color:var(--accent)}
 .header{position:sticky;top:0;z-index:50;background:rgba(11,16,32,.72);backdrop-filter:saturate(160%) blur(8px);border-bottom:1px solid var(--border)}
 .max{max-width:1200px;margin:0 auto;padding:14px 20px}
@@ -22,38 +24,34 @@ a{color:var(--accent)}
 .brand .logo{width:36px;height:36px;border-radius:10px;background:linear-gradient(145deg,var(--accent),var(--accent-2));display:grid;place-items:center;color:#0b1020;font-weight:800}
 .brand .name{font-weight:700}
 .nav .spacer{flex:1}
-.hero{max-width:1200px;margin:0 auto;padding:26px 20px 10px}
-.hero .wrap{display:grid;grid-template-columns:1.1fr .9fr;gap:24px;align-items:center}
-.h1{font-size:28px;margin:0 0 8px} .sub{color:var(--muted);margin:0 0 16px}
-.cta{display:flex;gap:8px;flex-wrap:wrap}
-.btn{border:1px solid var(--border);background:linear-gradient(145deg,var(--accent),var(--accent-2));color:#08202a;font-weight:700;padding:10px 14px;border-radius:12px;cursor:pointer;box-shadow:0 6px 20px -8px rgba(34,211,238,.6)}
-.btn.secondary{background:transparent;color:var(--text)}
-.preview{background:rgba(16,24,48,.6);border:1px solid var(--border);border-radius:16px;padding:14px}
-.small{color:var(--muted);font-size:12px}
-.tabs{display:flex;gap:8px;margin-top:8px;flex-wrap:wrap}
+.tabs{display:flex;gap:8px;margin:10px auto 0;flex-wrap:wrap}
 .tab{background:#0e152b;border:1px solid var(--border);color:var(--text);border-radius:10px;padding:8px 12px;cursor:pointer}
 .tab.active{background:linear-gradient(145deg,var(--accent),var(--accent-2));color:#0b1020;border-color:transparent;font-weight:700}
 main{max-width:1200px;margin:0 auto;padding:12px 20px 40px}
 .grid{display:grid;grid-template-columns:360px 1fr;gap:18px}
 .card{background:var(--panel);border:1px solid var(--border);border-radius:14px;padding:14px}
 h3{margin:0 0 10px}
-.input, textarea, select, input[type="color"]{width:100%;padding:10px;border-radius:10px;border:1px solid var(--border);background:#0b1224;color:var(--text)}
+.input, textarea, select, input[type="color"]{
+  width:100%;padding:10px;border-radius:10px;border:1px solid var(--border);background:#0b1224;color:var(--text)
+}
 label{display:block;margin-bottom:6px;color:var(--muted)}
 .row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
 .badge{display:inline-block;padding:2px 8px;border-radius:999px;border:1px solid var(--border);background:#0d1430;color:#8bf3ff;font-size:12px}
-.messages{height:56vh;overflow:auto;display:flex;flex-direction:column;gap:10px;padding-right:4px}
+.messages{height:60vh;overflow:auto;display:flex;flex-direction:column;gap:10px;padding-right:4px}
 .msg{max-width:78%;padding:10px 12px;border-radius:12px;line-height:1.35;white-space:pre-wrap}
 .msg.bot{align-self:flex-start;background:#0d162e;border:1px solid var(--border)}
 .msg.user{align-self:flex-end;background:rgba(34,211,238,.15);border:1px solid rgba(34,211,238,.5)}
 .composer{display:flex;gap:8px;margin-top:8px} .composer input{flex:1}
-.table-wrap{overflow:auto} table{width:100%;border-collapse:collapse} th,td{padding:10px;border-bottom:1px solid var(--border);text-align:left}
 .kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:12px}
 .kpi{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:14px;text-align:center}
 .kpi-number{font-size:26px;font-weight:700}
+.table-wrap{overflow:auto} table{width:100%;border-collapse:collapse} th,td{padding:10px;border-bottom:1px solid var(--border);text-align:left}
 .hidden{display:none !important}
-.switch{display:flex;align-items:center;gap:8px}
-select.provider{background:#0d1430;border-color:#25406b}
+.small{font-size:12px;color:var(--muted)}
+.btn{border:1px solid var(--border);background:linear-gradient(145deg,var(--accent),var(--accent-2));color:#08202a;font-weight:700;padding:10px 14px;border-radius:12px;cursor:pointer;box-shadow:0 6px 20px -8px rgba(34,211,238,.6)}
+.btn.secondary{background:transparent;color:var(--text)}
 .notice{font-size:12px;color:#ffd080}
+.debug{font-family:ui-monospace,Consolas,monospace;background:#0b1224;border:1px dashed #24304c;border-radius:10px;padding:10px;white-space:pre-wrap;max-height:180px;overflow:auto}
 </style>
 </head>
 <body>
@@ -61,53 +59,31 @@ select.provider{background:#0d1430;border-color:#25406b}
   <div class="max nav">
     <div class="brand">
       <div class="logo">🚗</div>
-      <div class="name">Consultor de Automóveis</div>
-      <span class="badge">Single-file (local)</span>
+      <div class="name">Consultor de Automóveis — IA</div>
+      <span class="badge">Prompt Editor</span>
     </div>
     <div class="spacer"></div>
-    <div class="switch">
-      <input type="checkbox" id="useAI"/>
-      <label for="useAI">Usar IA via proxy</label>
+    <div class="row">
+      <label class="small">Endpoint</label>
+      <input id="endpoint" class="input" style="width:360px" value="/api/chat_gemini" />
+      <button class="btn secondary" id="testEP">Testar</button>
+      <span id="epStatus" class="small"></span>
     </div>
   </div>
 </header>
 
-<section class="hero" id="home">
-  <div class="wrap">
-    <div>
-      <h1 class="h1">Chat consultivo + CRM local + Follow-ups</h1>
-      <p class="sub">Continua usando o <strong>seu proxy</strong> de IA atual. Sem base externa. Tudo salvo no navegador.</p>
-      <div class="cta">
-        <a class="btn" href="#demo">Começar a demo</a>
-        <a class="btn secondary" href="#crm">CRM</a>
-      </div>
-      <p class="small">Dica: deixe a **URL do Proxy** apontando para o seu endpoint atual (ex.: <code>/api/chat</code> da sua Vercel), ou selecione um provedor abaixo.</p>
-    </div>
-    <div class="preview">
-      <div class="row">
-        <span class="badge">Leads</span>
-        <span class="badge">Follow-ups</span>
-        <span class="badge">CSV</span>
-      </div>
-      <p class="small" style="margin-top:8px">Totalmente estático. Ideal para testar e apresentar.</p>
-    </div>
-  </div>
-</section>
-
 <div class="max">
   <div class="tabs" id="tabs">
-    <button class="tab active" data-tab="demo">Demo (Chat)</button>
+    <button class="tab active" data-tab="chat">Chat</button>
     <button class="tab" data-tab="crm">CRM</button>
     <button class="tab" data-tab="analytics">Analytics</button>
-    <button class="tab" data-tab="trainer">Treinar scripts</button>
-    <button class="tab" data-tab="personalizar">Personalizar</button>
-    <button class="tab" data-tab="sobre">Sobre</button>
+    <button class="tab" data-tab="prompt">Prompt da IA</button>
   </div>
 </div>
 
 <main class="max">
-  <!-- Demo -->
-  <section id="demo" class="tab-content">
+  <!-- CHAT -->
+  <section id="chat" class="tab-content">
     <div class="grid">
       <aside class="card">
         <h3>Lead atual</h3>
@@ -117,29 +93,23 @@ select.provider{background:#0d1430;border-color:#25406b}
           <button class="btn secondary" id="btnNewLead">Novo lead</button>
         </div>
         <hr/>
-        <label>Provedor/Proxy</label>
-        <select id="provider" class="input provider">
-          <option value="custom">Usar URL do Proxy (seu /api/chat)</option>
-          <option value="gemini">Gemini (se você tiver /api/chat_gemini)</option>
-          <option value="mistral">Mistral (se você tiver /api/chat_mistral)</option>
-        </select>
-        <label style="margin-top:10px">URL do Proxy (HTTPS)</label>
-        <input id="proxyUrl" class="input" placeholder="/api/chat"/>
-        <div class="row">
-          <button class="btn secondary" id="btnTest">Testar endpoint</button>
-          <span class="small" id="endpointStatus"></span>
-        </div>
-        <hr/>
         <label>Follow-up (data/hora)</label>
         <input id="nextFollow" class="input" type="datetime-local"/>
         <input id="followNote" class="input" placeholder="Observação do follow-up"/>
         <button class="btn secondary" id="btnSetFollow">Salvar follow-up</button>
-        <div class="small notice" id="followWarn" style="display:none">⚠️ Você tem follow-ups vencidos na aba Analytics.</div>
+        <p id="followWarn" class="notice hidden">⚠️ Você tem follow-ups vencidos na aba Analytics.</p>
+        <hr/>
+        <label><input type="checkbox" id="autoAppt" /> Agendar automaticamente se a IA sugerir</label>
+        <p class="small">O agendamento será criado ao detectar “vamos agendar”, “marcar” + uma data/horário reconhecível.</p>
+        <hr/>
+        <h3>Debug (JSON extraído pela IA)</h3>
+        <div id="debugBox" class="debug small">—</div>
       </aside>
+
       <div class="card">
         <div id="messages" class="messages"></div>
         <div class="composer">
-          <input id="userInput" class="input" placeholder="Escreva aqui... (ex.: Quero um carro econômico para família de 4)"/>
+          <input id="userInput" class="input" placeholder="Ex.: Quero um carro econômico para família de 4, até 150 mil parcelado" />
           <button class="btn" id="sendBtn">Enviar</button>
         </div>
       </div>
@@ -151,12 +121,12 @@ select.provider{background:#0d1430;border-color:#25406b}
     <div class="kpis">
       <div class="kpi"><div class="kpi-number" id="kpiLeads">0</div><div>Leads</div></div>
       <div class="kpi"><div class="kpi-number" id="kpiQual">0</div><div>Qualificados</div></div>
-      <div class="kpi"><div class="kpi-number" id="kpiQuote">0</div><div>Recomendação enviada</div></div>
+      <div class="kpi"><div class="kpi-number" id="kpiRec">0</div><div>Recomendação enviada</div></div>
       <div class="kpi"><div class="kpi-number" id="kpiWon">0</div><div>Fechados</div></div>
     </div>
     <div class="card">
       <div class="row" style="margin-bottom:10px">
-        <input class="input" id="search" placeholder="Buscar por nome, telefone, produto, status..."/>
+        <input class="input" id="search" placeholder="Buscar por nome, telefone, perfil, status..."/>
         <button class="btn secondary" id="exportCsv">Exportar CSV</button>
         <button class="btn secondary" id="clearCrm">Limpar CRM</button>
       </div>
@@ -175,126 +145,50 @@ select.provider{background:#0d1430;border-color:#25406b}
       <h3>Visão geral</h3>
       <div class="kpis">
         <div class="kpi"><div class="kpi-number" id="aLeads">0</div><div>Leads</div></div>
-        <div class="kpi"><div class="kpi-number" id="aObjPreco">0</div><div>Objeções: preço</div></div>
-        <div class="kpi"><div class="kpi-number" id="aObjConsumo">0</div><div>Prioridade: consumo</div></div>
-        <div class="kpi"><div class="kpi-number" id="aObjEspaco">0</div><div>Prioridade: espaço</div></div>
+        <div class="kpi"><div class="kpi-number" id="aPreco">0</div><div>Objeções: preço</div></div>
+        <div class="kpi"><div class="kpi-number" id="aConsumo">0</div><div>Prioridade: consumo</div></div>
+        <div class="kpi"><div class="kpi-number" id="aEspaco">0</div><div>Prioridade: espaço</div></div>
       </div>
       <h3>Próximos follow-ups</h3>
       <ul id="followups"></ul>
     </div>
   </section>
 
-  <!-- Trainer -->
-  <section id="trainer" class="tab-content hidden">
+  <!-- Prompt da IA -->
+  <section id="prompt" class="tab-content hidden">
     <div class="card">
-      <h3>Treinar scripts (Consultor de Automóveis)</h3>
-      <div class="grid" style="grid-template-columns:1fr 1fr">
-        <div>
-          <label>Saudação / Abertura</label>
-          <textarea id="tGreeting" rows="4" class="input"></textarea>
-        </div>
-        <div>
-          <label>Fechamento / Próximo passo</label>
-          <textarea id="tClosing" rows="4" class="input"></textarea>
-        </div>
-        <div>
-          <label>Perguntas de Descoberta (uma por linha)</label>
-          <textarea id="tDiscovery" rows="6" class="input"></textarea>
-        </div>
-        <div>
-          <label>Tratamento de Objeções (JSON)</label>
-          <textarea id="tObjections" rows="6" class="input" placeholder='{"preco":"...","consumo":"..."}'></textarea>
-        </div>
+      <h3>Prompt do Gemini (System)</h3>
+      <p class="small">Personalize o comportamento do consultor. Você pode usar variáveis simples: <code>{{biz}}</code>, <code>{{agent}}</code>.</p>
+      <textarea id="promptEditor" class="input" rows="14"></textarea>
+      <div class="row" style="margin-top:8px">
+        <button class="btn" id="savePrompt">Salvar Prompt</button>
+        <button class="btn secondary" id="resetPrompt">Restaurar padrão</button>
       </div>
-      <div class="row" style="margin-top:10px">
-        <button class="btn" id="btnSaveTraining">Salvar</button>
-        <button class="btn secondary" id="btnLoadSample">Carregar exemplos</button>
-        <button class="btn secondary" id="btnClearTraining">Apagar</button>
-        <button class="btn secondary" id="btnExportConfig">Exportar configuração (.json)</button>
-        <input type="file" id="importFile" class="hidden" accept=".json"/>
-        <button class="btn secondary" id="btnImportConfig">Importar configuração</button>
-      </div>
-    </div>
-  </section>
-
-  <!-- Personalizar -->
-  <section id="personalizar" class="tab-content hidden">
-    <div class="card">
-      <h3>Branding & Tema</h3>
-      <div class="grid" style="grid-template-columns:1fr 1fr">
-        <div>
-          <label>Nome do consultor</label>
-          <input id="sAgent" class="input" placeholder="Tiago"/>
-          <label style="margin-top:10px">Nome do negócio</label>
-          <input id="sBiz" class="input" placeholder="Consultoria Auto Tiago"/>
-          <label style="margin-top:10px">Produtos</label>
-          <input id="sProducts" class="input" placeholder="Consultoria automotiva, compra, troca, financiamento"/>
-        </div>
-        <div>
-          <div class="row" style="margin-top:10px">
-            <div>
-              <label>Cor primária</label>
-              <input type="color" id="cPrimary" value="#22d3ee"/>
-            </div>
-            <div>
-              <label>Cor secundária</label>
-              <input type="color" id="cSecondary" value="#34d399"/>
-            </div>
-          </div>
-          <div class="row" style="margin-top:10px">
-            <button class="btn" id="btnSaveTheme">Salvar tema</button>
-            <button class="btn secondary" id="btnResetTheme">Restaurar tema</button>
-          </div>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- Sobre -->
-  <section id="sobre" class="tab-content hidden">
-    <div class="card">
-      <h3>Sobre esta versão</h3>
-      <p>Funciona 100% no navegador, salvando no <strong>localStorage</strong>. O chat usa o <strong>seu endpoint</strong> (proxy) atual. Você pode alternar para <code>/api/chat_gemini</code> ou <code>/api/chat_mistral</code> se tiver adicionado ao mesmo projeto.</p>
+      <hr/>
+      <label>Agendamento inteligente</label>
+      <p class="small">Frases como “vamos agendar amanhã 15:00” serão detectadas e o follow-up criado automaticamente (se a caixa na aba Chat estiver marcada).</p>
     </div>
   </section>
 </main>
 
 <script>
-// ===== Storage & Defaults =====
-const LS = { SETTINGS:"auto_settings", TRAINING:"auto_training", CRM:"auto_crm" };
-const defaults = {
-  settings: { agent:"Tiago", biz:"Consultoria Auto Tiago", products:"Consultoria automotiva, compra, troca, financiamento", provider:"custom", proxyUrl:"/api/chat" },
-  training: {
-    greeting: "Olá! Sou seu consultor de automóveis. Vou te ajudar a escolher o carro ideal considerando orçamento, uso e custo total (TCO), sem enrolação.",
-    discovery: [
-      "Carro novo ou usado? Algum modelo/ano em mente?",
-      "Qual é seu orçamento (à vista ou parcela mensal)? Tem entrada?",
-      "Uso principal (cidade/rodovia/app/família)? Quilometragem/ano?",
-      "Prioridades (consumo, conforto, tecnologia, desempenho, espaço, segurança)?",
-      "Combustível preferido (flex/híbrido/elétrico)? Câmbio (manual/automático)?",
-      "CEP para estimar seguro/IPVA?",
-      "Tem carro para troca?"
-    ],
-    objections: {
-      preco: "Se o valor ficou alto, trago opções com ano/modelo alternativos ou versões mais enxutas mantendo segurança.",
-      consumo: "Posso priorizar modelos econômicos (híbridos/flex) e calcular o payback no seu uso.",
-      manutencao: "Trago estimativa anual de manutenção e disponibilidade de peças para cada modelo.",
-      seguro: "Incluo uma estimativa de seguro baseada no perfil/CEP e mostramos o impacto no custo mensal.",
-      espaco: "Analisamos porta-malas, espaço traseiro e isofix; comparo SUVs compactos e sedans mais espaçosos.",
-      depreciacao: "Mostro depreciação média (3–5 anos) e como influencia o TCO."
-    },
-    closing: "Te envio 2–3 opções com prós/contras, consumo e custos. Me passe nome e telefone para formalizar e te chamar no WhatsApp."
-  }
-};
-let settings = JSON.parse(localStorage.getItem(LS.SETTINGS)||"null") || defaults.settings;
-let training = JSON.parse(localStorage.getItem(LS.TRAINING)||"null") || defaults.training;
+/* ================== ESTADO & STORAGE ================== */
+const LS = { SETTINGS:"auto_settings", TRAINING:"auto_training", CRM:"auto_crm", PROMPT:"auto_prompt" };
 let crm = JSON.parse(localStorage.getItem(LS.CRM)||"null") || [];
+let settings = JSON.parse(localStorage.getItem(LS.SETTINGS)||"null") || {
+  agent:"Tiago", biz:"Consultoria Auto Tiago"
+};
+let customPrompt = localStorage.getItem(LS.PROMPT) || `Você é um consultor de automóveis da {{biz}} chamado {{agent}}.
+Regras:
+- Tom consultivo, objetivo e claro; responda SEM colchetes, marcadores de template ou placeholders.
+- Sempre que possível, ofereça 2–3 opções já completas (modelo/ano, consumo aproximado, pontos fortes/fracos, custo recorrente típico), sem “inserir dados”.
+- Quando houver intenção de compra real, solicite nome e telefone para formalizar.
+- Explore prioridades do cliente (consumo, conforto, tecnologia, desempenho, espaço, segurança), uso (cidade/rodovia/app/família), orçamento (à vista e mensal) e CEP (para noção de seguro).
+- Se o cliente mencionar “agendar”, confirme uma data/horário.
+Formate respostas em parágrafos curtos e com listas simples quando útil.
+`;
 
-function saveCRM(){ localStorage.setItem(LS.CRM, JSON.stringify(crm)); }
-function saveSettings(){ localStorage.setItem(LS.SETTINGS, JSON.stringify(settings)); }
-function saveTraining(){ localStorage.setItem(LS.TRAINING, JSON.stringify(training)); }
-
-// ===== Tabs =====
+/* ================== UI BÁSICA / TABS ================== */
 const tabs = document.querySelectorAll(".tab");
 const sections = document.querySelectorAll(".tab-content");
 tabs.forEach(b=> b.addEventListener("click", ()=>{
@@ -304,167 +198,262 @@ tabs.forEach(b=> b.addEventListener("click", ()=>{
   document.getElementById(b.dataset.tab).classList.remove("hidden");
   if (b.dataset.tab === "crm") renderCRM();
   if (b.dataset.tab === "analytics") renderAnalytics();
-  if (b.dataset.tab === "trainer") loadTrainer();
-  if (b.dataset.tab === "personalizar") loadPersonalize();
+  if (b.dataset.tab === "prompt") loadPromptEditor();
 }));
 
-// ===== Theme & Branding =====
-function applyTheme(){
-  document.documentElement.style.setProperty("--accent", theme.accent || "#22d3ee");
-  document.documentElement.style.setProperty("--accent-2", theme.accent2 || "#34d399");
-}
-let theme = { accent:"#22d3ee", accent2:"#34d399" };
-function loadPersonalize(){
-  document.getElementById("sAgent").value = settings.agent;
-  document.getElementById("sBiz").value = settings.biz;
-  document.getElementById("sProducts").value = settings.products;
-  document.getElementById("cPrimary").value = theme.accent;
-  document.getElementById("cSecondary").value = theme.accent2;
-}
-document.getElementById("btnSaveTheme").onclick = ()=>{
-  settings.agent = document.getElementById("sAgent").value || "Tiago";
-  settings.biz = document.getElementById("sBiz").value || "Consultoria Auto Tiago";
-  settings.products = document.getElementById("sProducts").value || defaults.settings.products;
-  theme.accent = document.getElementById("cPrimary").value || "#22d3ee";
-  theme.accent2 = document.getElementById("cSecondary").value || "#34d399";
-  saveSettings(); applyTheme(); alert("Tema e branding salvos.");
-};
-document.getElementById("btnResetTheme").onclick = ()=>{
-  settings = JSON.parse(JSON.stringify(defaults.settings));
-  theme = { accent:"#22d3ee", accent2:"#34d399" };
-  saveSettings(); loadPersonalize(); applyTheme();
-  alert("Tema restaurado.");
-};
-
-// ===== Chat =====
+/* ================== ELEMENTOS ================== */
 const messagesEl = document.getElementById("messages");
-const useAIEl = document.getElementById("useAI");
-const providerEl = document.getElementById("provider");
-const proxyUrlEl = document.getElementById("proxyUrl");
-providerEl.value = settings.provider || "custom";
-proxyUrlEl.value = settings.proxyUrl || "/api/chat";
-useAIEl.checked = !!settings.proxyUrl;
+const userInput = document.getElementById("userInput");
+const sendBtn = document.getElementById("sendBtn");
+const endpointEl = document.getElementById("endpoint");
+const testEP = document.getElementById("testEP");
+const epStatus = document.getElementById("epStatus");
+const autoApptEl = document.getElementById("autoAppt");
+const debugBox = document.getElementById("debugBox");
 
-function appendMsg(sender, text){
-  const div = document.createElement("div"); div.className = "msg " + (sender === "bot" ? "bot" : "user"); div.textContent = text;
-  messagesEl.appendChild(div); messagesEl.scrollTop = messagesEl.scrollHeight;
+document.getElementById("btnSaveLead").onclick = onSaveLead;
+document.getElementById("btnNewLead").onclick = onNewLead;
+document.getElementById("btnSetFollow").onclick = onManualFollow;
+document.getElementById("exportCsv").onclick = exportCsv;
+document.getElementById("clearCrm").onclick = clearCrm;
+document.getElementById("search").oninput = renderCRM;
+testEP.onclick = doTestEP;
+sendBtn.onclick = handleSend;
+userInput.addEventListener("keydown", e=> (e.key==="Enter") && handleSend());
+
+/* ================== PROMPT EDITOR ================== */
+const promptEditor = document.getElementById("promptEditor");
+const savePrompt = document.getElementById("savePrompt");
+const resetPrompt = document.getElementById("resetPrompt");
+savePrompt.onclick = ()=>{
+  customPrompt = promptEditor.value || customPrompt;
+  localStorage.setItem(LS.PROMPT, customPrompt);
+  alert("Prompt salvo!");
+};
+resetPrompt.onclick = ()=>{
+  localStorage.removeItem(LS.PROMPT);
+  customPrompt = undefined;
+  loadPromptEditor();
+  alert("Prompt restaurado.");
+};
+function loadPromptEditor(){
+  const p = localStorage.getItem(LS.PROMPT) || defaultPrompt();
+  promptEditor.value = p;
 }
-function bot(t){ appendMsg("bot", t); currentLead.transcript.push({who:settings.agent, text:t, ts:new Date().toISOString()}); }
-function user(t){ appendMsg("user", t); currentLead.transcript.push({who:"Cliente", text:t, ts:new Date().toISOString()}); }
+function defaultPrompt(){ return `Você é um consultor de automóveis da {{biz}} chamado {{agent}}.
+Regras:
+- Tom consultivo, objetivo e claro; responda SEM colchetes, marcadores de template ou placeholders.
+- Sempre que possível, ofereça 2–3 opções já completas (modelo/ano, consumo aproximado, pontos fortes/fracos, custo recorrente típico), sem “inserir dados”.
+- Quando houver intenção de compra real, solicite nome e telefone para formalizar.
+- Explore prioridades do cliente (consumo, conforto, tecnologia, desempenho, espaço, segurança), uso (cidade/rodovia/app/família), orçamento (à vista e mensal) e CEP (para noção de seguro).
+- Se o cliente mencionar “agendar”, confirme uma data/horário.
+Formate respostas em parágrafos curtos e com listas simples quando útil.`; }
 
+/* ================== LEADS / CHAT ================== */
 let currentLead = newLead();
-let chatStarted=false, step=0;
+let chatStarted=false;
+
 function newLead(){
   return {
     id: crypto.randomUUID ? crypto.randomUUID() : String(Date.now()),
     name:"", phone:"", email:"", status:"Novo", score:0,
     new_or_used:"", model_hint:"", budget_month:"", budget_cash:"", use_case:"", annual_km:"",
     priorities:[], fuel:"", gearbox:"", cep:"",
+    next_followup_at:null, followup_note:"",
     created_at:new Date().toISOString(), updated_at:new Date().toISOString(),
-    transcript:[], next_followup_at:null, followup_note:""
+    transcript:[]
   };
 }
-function start(){
-  bot(`${training.greeting}\nTrabalho com ${settings.products}. Você quer falar sobre carro novo ou usado? Tem algum modelo/ano em mente?`);
-}
-const userInput = document.getElementById("userInput");
-document.getElementById("sendBtn").onclick = handleSend;
-userInput.addEventListener("keydown", e=> (e.key==="Enter") && handleSend());
 
-function effectiveEndpoint(){
-  const p = providerEl.value;
-  if (p==="gemini") return "/api/chat_gemini";
-  if (p==="mistral") return "/api/chat_mistral";
-  return proxyUrlEl.value || "/api/chat";
+function appendMsg(sender, text){
+  const div = document.createElement("div"); 
+  div.className = "msg " + (sender === "bot" ? "bot" : "user"); 
+  div.textContent = sanitize(text);
+  messagesEl.appendChild(div); messagesEl.scrollTop = messagesEl.scrollHeight;
 }
-providerEl.onchange = ()=>{
-  settings.provider = providerEl.value;
-  if (settings.provider==="custom" && !settings.proxyUrl) proxyUrlEl.value="/api/chat";
-  if (settings.provider==="gemini") proxyUrlEl.value="/api/chat_gemini";
-  if (settings.provider==="mistral") proxyUrlEl.value="/api/chat_mistral";
-  saveSettings();
-};
+function bot(t){ appendMsg("bot", t); currentLead.transcript.push({who:settings.agent, text:sanitize(t), ts:new Date().toISOString()}); }
+function user(t){ appendMsg("user", t); currentLead.transcript.push({who:"Cliente", text:sanitize(t), ts:new Date().toISOString()}); }
 
+function sanitize(s){
+  return String(s||"")
+    .replace(/\[(insira|inserir).*?\]/gi,"")
+    .replace(/\{\{.*?\}\}/g,"")
+    .replace(/\s{2,}/g," ")
+    .trim();
+}
+
+/* ================== FLUXO COM IA ================== */
 async function handleSend(){
   const t = userInput.value.trim(); if (!t) return; userInput.value = "";
   user(t);
-  if (!chatStarted){ chatStarted = true; step=1; ask1(); return; }
+  if (!chatStarted){ chatStarted = true; bot("Perfeito! Para começar, novo ou usado? E qual seu orçamento (à vista e/ou mensal) e uso principal?"); return; }
 
-  // IA (se ligado)
-  if (useAIEl.checked && effectiveEndpoint()){
-    try{
-      const sys = buildSystemPrompt();
-      const payload = { system: sys, messages: currentLead.transcript.slice(-20) };
-      const res = await fetch(effectiveEndpoint(), { method:"POST", headers:{ "Content-Type":"application/json" }, body: JSON.stringify(payload) });
-      if (!res.ok) throw new Error("Falha no proxy ("+res.status+")");
-      const data = await res.json();
-      bot(data.text || "(sem resposta)");
-      updateLeadSnapshot(); return;
-    }catch(e){ bot("Não consegui falar com a IA agora. Vou seguir o fluxo offline. ("+e.message+")"); }
+  // 1) Chama a IA com seu prompt personalizado
+  const sys = renderPrompt();
+  const convo = currentLead.transcript.slice(-20);
+  const aiResp = await callChat(sys, convo);
+  if (aiResp.ok){ bot(aiResp.text||"(sem resposta)"); } else { bot("Falha no endpoint: "+aiResp.status); return; }
+
+  // 2) Extrai dados estruturados (JSON) e mescla no lead
+  const extracted = await aiExtractLead(convo);
+  if (extracted){ mergeLeadData(extracted); autoScoreAndSave(); }
+
+  // 3) Se IA sugerir agendamento e "autoAppt" estiver ligado, cria automaticamente
+  if (autoApptEl.checked && detectScheduleIntent(aiResp.text||"")){
+    const when = parseDateTimePtBR(aiResp.text) || nearestWorkSlot();
+    if (when){
+      const note = await aiFollowupNote(convo);
+      currentLead.next_followup_at = when.toISOString();
+      currentLead.followup_note = note || defaultFollowNote();
+      autoScoreAndSave(); updateLeadSnapshot();
+      bot(`Agendado automaticamente para ${when.toLocaleString()}.`);
+    }else{
+      bot("Posso agendar para você. Qual data e horário preferidos? (ex.: 12/09 14:30)");
+    }
   }
-
-  // Fluxo offline
-  processOffline(t);
 }
 
-function buildSystemPrompt(){
-  return `Você é um consultor de automóveis da ${settings.biz} chamado ${settings.agent}.
-Tom: consultivo, objetivo e claro.
-Saudação: ${training.greeting}
-Perguntas: ${training.discovery.join(" | ")}
-Objeções: ${JSON.stringify(training.objections)}
-Fechamento: ${training.closing}
-Quando houver intenção clara, peça nome e telefone para qualificar o lead.`;
+function renderPrompt(){
+  const tpl = (localStorage.getItem(LS.PROMPT) || customPrompt || defaultPrompt());
+  return tpl.replace(/\{\{biz\}\}/g, settings.biz).replace(/\{\{agent\}\}/g, settings.agent);
 }
 
-// Perguntas guiadas
-function ask1(){ bot("Novo ou usado? Algum modelo/ano em mente?"); }
-function ask2(){ bot("Orçamento: à vista (R$) ou mensal (parcela)? Tem entrada?"); }
-function ask3(){ bot("Uso (cidade/rodovia/app/família) e quilometragem/ano?"); }
-function ask4(){ bot("Prioridades (consumo, conforto, tecnologia, desempenho, espaço, segurança)?"); }
-function ask5(){ bot("Preferência de combustível (flex/híbrido/elétrico), câmbio (manual/automático) e seu CEP?"); }
-function ask6(){ bot("Seu nome e telefone (ex.: Maria 41999998888), para formalizar as recomendações."); }
+async function callChat(system, messages){
+  try{
+    const r = await fetch(endpointEl.value||"/api/chat_gemini",{
+      method:"POST", headers:{"Content-Type":"application/json"},
+      body: JSON.stringify({ system, messages })
+    });
+    const j = await r.json();
+    return { ok:r.ok, status:r.status, text:j.text||"" };
+  }catch(e){ return { ok:false, status:"ERR", text:String(e.message) }; }
+}
 
-function includesAny(text, arr){ const l=text.toLowerCase(); return arr.some(k=> l.includes(k.toLowerCase())); }
-function extractNum(text){ const m=text.match(/\d+/g); return m? m.join("") : ""; }
-function processOffline(text){
-  switch(step){
-    case 1:
-      currentLead.new_or_used = includesAny(text,["novo","zero"])?"Novo": (includesAny(text,["usado","semi"]))?"Usado":currentLead.new_or_used;
-      if (!currentLead.model_hint) currentLead.model_hint=text;
-      step=2; ask2(); break;
-    case 2:
-      if (!currentLead.budget_cash && (text.includes("à vista")||text.includes("a vista"))) currentLead.budget_cash = extractNum(text);
-      if (!currentLead.budget_month && includesAny(text,["parcela","mensal","mês","mes"])) currentLead.budget_month = extractNum(text);
-      if (!currentLead.budget_cash && !currentLead.budget_month) currentLead.budget_month = extractNum(text);
-      step=3; ask3(); break;
-    case 3:
-      if (!currentLead.use_case) currentLead.use_case = text;
-      if (!currentLead.annual_km) currentLead.annual_km = extractNum(text);
-      step=4; ask4(); break;
-    case 4:
-      currentLead.priorities = text.split(/,|;|\//).map(s=>s.trim()).filter(Boolean);
-      step=5; ask5(); break;
-    case 5:
-      if (!currentLead.fuel) currentLead.fuel = includesAny(text,["híbrido","hibrido"])?"Híbrido": includesAny(text,["elétrico","eletrico"])?"Elétrico": includesAny(text,["flex"])?"Flex":"";
-      if (!currentLead.gearbox) currentLead.gearbox = includesAny(text,["automático","automatico"])?"Automático": includesAny(text,["manual"])?"Manual":"";
-      if (!currentLead.cep) currentLead.cep = extractNum(text);
-      step=6; ask6(); break;
-    case 6:
-      const m = text.match(/(\+?\d{10,14})/);
-      if (m){ currentLead.phone = m[0]; currentLead.name = text.replace(m[0],"").trim(); currentLead.status="Qualificado"; currentLead.score = scoreLead(currentLead); }
-      updateLeadSnapshot(); break;
+/* ============ EXTRAÇÃO DE DADOS POR IA (JSON) ============ */
+async function aiExtractLead(messages){
+  try{
+    const convo = messages.map(m=>`${m.who}: ${m.text}`).join("\n");
+    const sys = `Apenas devolva JSON válido (sem texto extra) com os campos:
+{
+ "name": string|null, "phone": string|null,
+ "new_or_used": "Novo"|"Usado"|null,
+ "model_hint": string|null,
+ "budget_cash": string|null, "budget_month": string|null,
+ "use_case": string|null, "annual_km": string|null,
+ "priorities": string[]|null,
+ "fuel": string|null, "gearbox": string|null, "cep": string|null
+}
+- Telefone apenas dígitos (10–14). Não invente valores.`;
+
+    const r = await fetch(endpointEl.value||"/api/chat_gemini",{
+      method:"POST", headers:{"Content-Type":"application/json"},
+      body: JSON.stringify({ system: sys, messages:[{who:"Transcrição", text: convo}] })
+    });
+    const j = await r.json();
+    const raw = sanitize(j.text||"");
+    let data=null; try{ data = JSON.parse(raw); } catch(e){ /* pode ser que a IA traga code fences; tenta limpar */ 
+      const m = raw.match(/\{[\s\S]*\}$/); if (m){ try{ data = JSON.parse(m[0]); }catch(_){} }
+    }
+    debugBox.textContent = data? JSON.stringify(data,null,2) : "(sem JSON válido)";
+    return data||null;
+  }catch(e){
+    debugBox.textContent = "erro: "+e.message;
+    return null;
   }
-  // objeções
-  const l=text.toLowerCase();
-  if (l.includes("preço")||l.includes("preco")||l.includes("caro")) bot(training.objections.preco);
-  if (l.includes("consumo")) bot(training.objections.consumo);
-  if (l.includes("manuten")) bot(training.objections.manutencao);
-  if (l.includes("seguro")) bot(training.objections.seguro);
-  if (l.includes("espaço")||l.includes("espaco")) bot(training.objections.espaco);
-  if (l.includes("deprec")) bot(training.objections.depreciacao);
 }
 
+function mergeLeadData(p){
+  const L=currentLead;
+  const assign = (k)=>{ if (p[k]) L[k]=p[k]; };
+  ["name","phone","new_or_used","model_hint","budget_cash","budget_month","use_case","annual_km","fuel","gearbox","cep"].forEach(assign);
+  if (Array.isArray(p.priorities) && p.priorities.length){ L.priorities = p.priorities; }
+  L.updated_at = new Date().toISOString();
+  updateLeadSnapshot();
+}
+
+function autoScoreAndSave(){
+  currentLead.score = scoreLead(currentLead);
+  const i = crm.findIndex(x=>x.id===currentLead.id);
+  if (i>=0) crm[i]=currentLead; else crm.push(currentLead);
+  localStorage.setItem(LS.CRM, JSON.stringify(crm));
+  renderCRM();
+}
+
+/* ================== AGENDAMENTO ================== */
+function defaultFollowNote(){
+  const L=currentLead;
+  return `Contato com ${L.name||"Lead"}: validar orçamento R$${L.budget_month||L.budget_cash||"?"}/mês, prioridades ${ (L.priorities||[]).slice(0,3).join("/")||"?" }.`;
+}
+async function aiFollowupNote(messages){
+  try{
+    const convo = messages.map(m=>`${m.who}: ${m.text}`).join("\n");
+    const sys = `Gerar UMA linha breve de nota para follow-up (sem emojis), com objetivo claro para o próximo contato.`;
+    const r = await fetch(endpointEl.value||"/api/chat_gemini",{
+      method:"POST", headers:{"Content-Type":"application/json"},
+      body: JSON.stringify({ system: sys, messages:[{who:"Transcrição", text: convo}] })
+    });
+    const j = await r.json();
+    return sanitize(j.text||"").slice(0,240);
+  }catch(e){ return ""; }
+}
+
+function detectScheduleIntent(t){
+  const s = t.toLowerCase();
+  return /(agendar|marcar|reuni[aã]o|ligação|ligacao|chamada)/.test(s);
+}
+
+function parseDateTimePtBR(s){
+  const t = s.replace(/\s+às\s+/i," ").replace(/\s+as\s+/i," ").replace("h",":");
+  const m = t.match(/(\d{1,2})[\/\-](\d{1,2})(?:[\/\-](\d{2,4}))?(?:\s+(\d{1,2})(?::(\d{2}))?)?/);
+  if(!m) return null;
+  let [_,dd,MM,yyyy,hh,mm] = m;
+  const now = new Date();
+  const year = yyyy? (yyyy.length===2? 2000+parseInt(yyyy): parseInt(yyyy)) : now.getFullYear();
+  const date = new Date(year, parseInt(MM)-1, parseInt(dd), parseInt(hh||"9"), parseInt(mm||"0"));
+  return isNaN(date.getTime())? null : date;
+}
+function nearestWorkSlot(){
+  const d = new Date();
+  d.setMinutes(d.getMinutes()+90);
+  if (d.getHours() < 9) { d.setHours(9,0,0,0); }
+  if (d.getHours() > 18) { d.setDate(d.getDate()+1); d.setHours(9,0,0,0); }
+  return d;
+}
+
+function onManualFollow(){
+  const dt = document.getElementById("nextFollow").value;
+  const note = document.getElementById("followNote").value;
+  currentLead.next_followup_at = dt? new Date(dt).toISOString(): null;
+  currentLead.followup_note = sanitize(note||"");
+  autoScoreAndSave(); updateLeadSnapshot();
+  alert("Follow-up salvo (local).");
+}
+
+/* ================== BOTÕES & AUXILIARES ================== */
+function onSaveLead(){ autoScoreAndSave(); alert("Lead salvo no CRM (local)."); }
+function onNewLead(){
+  currentLead = newLead(); chatStarted=false;
+  messagesEl.innerHTML = "";
+  bot(`Olá! Eu sou ${settings.agent} da ${settings.biz}.`);
+  bot("Prefere carro novo ou usado? Qual orçamento e uso principal?");
+  updateLeadSnapshot();
+}
+
+async function doTestEP(){
+  epStatus.textContent = "Testando...";
+  const r = await fetch(endpointEl.value||"/api/chat_gemini",{
+    method:"POST", headers:{"Content-Type":"application/json"},
+    body: JSON.stringify({ system:"teste", messages:[{who:"Cliente", text:"Olá!"}] })
+  }).catch(e=>({ok:false,status:e.message}));
+  if (r && r.ok !== undefined){
+    const txt = r.ok ? "OK" : "Falha";
+    epStatus.textContent = `${txt} (${r.status||"?"})`;
+  }else{
+    epStatus.textContent = "Erro de rede";
+  }
+}
+
+/* ================== SNAPSHOT / SCORE ================== */
 function scoreLead(L){
   let s=0;
   if (L.new_or_used) s+=10;
@@ -483,61 +472,34 @@ function updateLeadSnapshot(){
   L.updated_at = new Date().toISOString();
   document.getElementById("leadSnapshot").innerHTML = `
     <div class="badge">${L.status}</div>
-    <p><strong>${L.name||"(sem nome)"} </strong> • Tel ${L.phone||"-"} • Score ${L.score||0}</p>
-    <p>${L.new_or_used||"-"} • ${L.model_hint||"-"}</p>
+    <p><strong>${sanitize(L.name)||"(sem nome)"} </strong> • Tel ${L.phone||"-"} • Score ${L.score||0}</p>
+    <p>${L.new_or_used||"-"} • ${sanitize(L.model_hint)||"-"}</p>
     <p>Orçamento: à vista R$ ${L.budget_cash||"-"} • mensal R$ ${L.budget_month||"-"}</p>
-    <p>Uso: ${L.use_case||"-"} • km/ano ${L.annual_km||"-"} • CEP ${L.cep||"-"}</p>
-    <p>Preferências: ${L.priorities?.join(", ")||"-"} • ${L.fuel||"-"} • ${L.gearbox||"-"}</p>
+    <p>Uso: ${sanitize(L.use_case)||"-"} • km/ano ${L.annual_km||"-"} • CEP ${L.cep||"-"}</p>
+    <p>Preferências: ${sanitize((L.priorities||[]).join(", "))||"-"} • ${L.fuel||"-"} • ${L.gearbox||"-"}</p>
+    <p>Follow-up: ${L.next_followup_at? new Date(L.next_followup_at).toLocaleString():"-"} • ${sanitize(L.followup_note||"")}</p>
   `;
-  checkFollowupsWarning();
+  const warn = document.getElementById("followWarn");
+  const overdue = crm.some(x=>x.next_followup_at && new Date(x.next_followup_at).getTime() < Date.now());
+  warn.classList.toggle("hidden", !overdue);
 }
 
-// ===== Ações do lead
-document.getElementById("btnSaveLead").onclick = ()=>{
-  const i = crm.findIndex(x=>x.id===currentLead.id);
-  if (i>=0) crm[i]=currentLead; else crm.push(currentLead);
-  saveCRM(); renderCRM(); alert("Lead salvo no CRM (local).");
-};
-document.getElementById("btnNewLead").onclick = ()=>{
-  currentLead = newLead(); chatStarted=false; step=0;
-  document.getElementById("messages").innerHTML = ""; start();
-};
-
-document.getElementById("btnSetFollow").onclick = ()=>{
-  const dt = document.getElementById("nextFollow").value; const note = document.getElementById("followNote").value;
-  currentLead.next_followup_at = dt? new Date(dt).toISOString(): null; currentLead.followup_note = note||"";
-  updateLeadSnapshot();
-  const i = crm.findIndex(x=>x.id===currentLead.id);
-  if (i>=0) crm[i]=currentLead; else crm.push(currentLead);
-  saveCRM(); renderCRM(); alert("Follow-up salvo (local).");
-};
-
-// ===== Teste de endpoint
-document.getElementById("btnTest").onclick = async ()=>{
-  const url = effectiveEndpoint();
-  document.getElementById("endpointStatus").textContent = "Testando...";
-  try{
-    const r = await fetch(url, { method:"POST", headers:{ "Content-Type":"application/json" }, body: JSON.stringify({ system:"Teste", messages:[{who:"Cliente", text:"Olá"}] }) });
-    document.getElementById("endpointStatus").textContent = "Status: " + r.status;
-  }catch(e){ document.getElementById("endpointStatus").textContent = "Falha: " + e.message; }
-};
-
-// ===== CRM
+/* ================== CRM / ANALYTICS ================== */
 function renderCRM(){
   const tbody=document.querySelector("#crmTable tbody");
   const q=(document.getElementById("search").value||"").toLowerCase();
   const list=crm.filter(L=> !q || (`${L.name} ${L.phone} ${L.status} ${L.model_hint}`).toLowerCase().includes(q));
-  document.getElementById("kpiLeads").textContent=crm.length;
-  document.getElementById("kpiQual").textContent=crm.filter(x=>x.status==="Qualificado").length;
-  document.getElementById("kpiQuote").textContent=crm.filter(x=>x.status==="Recomendação enviada").length;
-  document.getElementById("kpiWon").textContent=crm.filter(x=>x.status==="Fechado").length;
+  setText("kpiLeads", crm.length);
+  setText("kpiQual", crm.filter(x=>x.status==="Qualificado").length);
+  setText("kpiRec",  crm.filter(x=>x.status==="Recomendação enviada").length);
+  setText("kpiWon",  crm.filter(x=>x.status==="Fechado").length);
   tbody.innerHTML="";
   list.forEach(L=>{
-    const perfil = `${L.new_or_used||"-"} | ${L.model_hint||"-"} | ${(L.priorities||[]).slice(0,2).join("/")||"-"}`;
+    const perfil = `${L.new_or_used||"-"} | ${sanitize(L.model_hint)||"-"} | ${(L.priorities||[]).slice(0,2).join("/")||"-"}`;
     const nf = L.next_followup_at ? new Date(L.next_followup_at).toLocaleString() : "-";
     const tr=document.createElement("tr");
     tr.innerHTML = `<td><span class="badge">${L.status}</span></td>
-      <td>${L.name||"-"}</td><td>${perfil}</td><td>${L.phone||"-"}</td>
+      <td>${sanitize(L.name)||"-"}</td><td>${perfil}</td><td>${L.phone||"-"}</td>
       <td>${L.score||0}</td><td>${nf}</td>
       <td>${new Date(L.updated_at||L.created_at).toLocaleString()}</td>
       <td>
@@ -550,22 +512,39 @@ function renderCRM(){
   tbody.querySelectorAll(".open").forEach(b=> b.onclick = (e)=>{
     const id=e.target.getAttribute("data-id"); const L=crm.find(x=>x.id===id); if(!L) return;
     currentLead=JSON.parse(JSON.stringify(L));
-    document.querySelector('.tab[data-tab="demo"]').click();
+    document.querySelector('.tab[data-tab="chat"]').click();
     bot("Lead reaberto no chat."); updateLeadSnapshot();
   });
   tbody.querySelectorAll(".stage").forEach(b=> b.onclick = (e)=>{
     const id=e.target.getAttribute("data-id"); const L=crm.find(x=>x.id===id); if(!L) return;
     const order=["Novo","Qualificado","Recomendação enviada","Fechamento","Fechado"];
     const i=order.indexOf(L.status); L.status=order[Math.min(order.length-1, Math.max(0,i+1))]||"Qualificado";
-    L.updated_at=new Date().toISOString(); saveCRM(); renderCRM();
+    L.updated_at=new Date().toISOString(); localStorage.setItem(LS.CRM, JSON.stringify(crm)); renderCRM();
   });
   tbody.querySelectorAll(".del").forEach(b=> b.onclick = (e)=>{
     const id=e.target.getAttribute("data-id");
-    crm = crm.filter(x=>x.id!==id); saveCRM(); renderCRM();
+    crm = crm.filter(x=>x.id!==id); localStorage.setItem(LS.CRM, JSON.stringify(crm)); renderCRM();
   });
 }
-document.getElementById("search").oninput = renderCRM;
-document.getElementById("exportCsv").onclick = ()=>{
+function renderAnalytics(){
+  setText("aLeads", crm.length);
+  let preco=0, consumo=0, espaco=0;
+  crm.forEach(L=> (L.transcript||[]).forEach(m=>{
+    const t=(m.text||"").toLowerCase();
+    if (t.includes("preço")||t.includes("preco")||t.includes("caro")) preco++;
+    if (t.includes("consumo")) consumo++;
+    if (t.includes("espaço")||t.includes("espaco")||t.includes("porta-malas")) espaco++;
+  }));
+  setText("aPreco", preco); setText("aConsumo", consumo); setText("aEspaco", espaco);
+  const ul=document.getElementById("followups"); ul.innerHTML="";
+  crm.filter(L=>L.next_followup_at).sort((a,b)=> new Date(a.next_followup_at)-new Date(b.next_followup_at)).slice(0,10).forEach(L=>{
+    const li=document.createElement("li"); li.textContent = `${sanitize(L.name)||"Lead"} • ${new Date(L.next_followup_at).toLocaleString()} • ${sanitize(L.followup_note||"")}`; ul.appendChild(li);
+  });
+}
+function setText(id,val){ const el=document.getElementById(id); if(el) el.textContent=val; }
+
+/* ================== EXPORT / CLEAR ================== */
+function exportCsv(){
   const headers=["id","status","name","phone","new_or_used","model_hint","budget_cash","budget_month","use_case","annual_km","priorities","fuel","gearbox","cep","score","next_followup_at","followup_note","created_at","updated_at"];
   const rows=[headers.join(",")];
   crm.forEach(L=>{
@@ -577,105 +556,17 @@ document.getElementById("exportCsv").onclick = ()=>{
   });
   const blob=new Blob([rows.join("\n")],{type:"text/csv;charset=utf-8"});
   const url=URL.createObjectURL(blob); const a=document.createElement("a"); a.href=url; a.download="crm.csv"; a.click(); URL.revokeObjectURL(url);
-};
-document.getElementById("clearCrm").onclick = ()=>{
+}
+function clearCrm(){
   if (!confirm("Apagar todos os leads do CRM (local)?")) return;
-  crm=[]; saveCRM(); renderCRM();
-};
-
-// ===== Analytics
-function renderAnalytics(){
-  document.getElementById("aLeads").textContent = crm.length;
-  let preco=0, consumo=0, espaco=0;
-  crm.forEach(L=> (L.transcript||[]).forEach(m=>{
-    const t=(m.text||"").toLowerCase();
-    if (t.includes("preço")||t.includes("preco")||t.includes("caro")) preco++;
-    if (t.includes("consumo")) consumo++;
-    if (t.includes("espaço")||t.includes("espaco")||t.includes("porta-malas")) espaco++;
-  }));
-  document.getElementById("aObjPreco").textContent = preco;
-  document.getElementById("aObjConsumo").textContent = consumo;
-  document.getElementById("aObjEspaco").textContent = espaco;
-  const ul=document.getElementById("followups"); ul.innerHTML="";
-  crm.filter(L=>L.next_followup_at).sort((a,b)=> new Date(a.next_followup_at)-new Date(b.next_followup_at)).slice(0,10).forEach(L=>{
-    const li=document.createElement("li"); li.textContent = `${L.name||"Lead"} • ${new Date(L.next_followup_at).toLocaleString()} • ${L.followup_note||""}`; ul.appendChild(li);
-  });
+  crm=[]; localStorage.setItem(LS.CRM, JSON.stringify(crm)); renderCRM();
 }
 
-// ===== Trainer
-function loadTrainer(){
-  document.getElementById("tGreeting").value = training.greeting || "";
-  document.getElementById("tDiscovery").value = (training.discovery||[]).join("\n");
-  document.getElementById("tObjections").value = JSON.stringify(training.objections||{}, null, 2);
-  document.getElementById("tClosing").value = training.closing || "";
-}
-document.getElementById("btnSaveTraining").onclick = ()=>{
-  try{
-    const obj = JSON.parse(document.getElementById("tObjections").value || "{}");
-    training = {
-      greeting: document.getElementById("tGreeting").value || defaults.training.greeting,
-      discovery: (document.getElementById("tDiscovery").value||"").split("\n").filter(Boolean),
-      objections: obj,
-      closing: document.getElementById("tClosing").value || defaults.training.closing
-    };
-    saveTraining(); alert("Treinamento salvo!");
-  }catch(e){ alert("JSON de objeções inválido."); }
-};
-document.getElementById("btnLoadSample").onclick = ()=>{
-  training = JSON.parse(JSON.stringify(defaults.training));
-  saveTraining(); loadTrainer(); alert("Exemplos carregados.");
-};
-document.getElementById("btnClearTraining").onclick = ()=>{
-  localStorage.removeItem(LS.TRAINING); training = JSON.parse(JSON.stringify(defaults.training)); loadTrainer(); alert("Treinamento apagado (exemplos restaurados).");
-};
-document.getElementById("btnExportConfig").onclick = ()=>{
-  const data = { settings, training, theme };
-  const blob = new Blob([JSON.stringify(data,null,2)],{type:"application/json"});
-  const url=URL.createObjectURL(blob); const a=document.createElement("a"); a.href=url; a.download="config-assistente.json"; a.click(); URL.revokeObjectURL(url);
-};
-document.getElementById("btnImportConfig").onclick = ()=> document.getElementById("importFile").click();
-document.getElementById("importFile").addEventListener("change",(e)=>{
-  const file = e.target.files[0]; if(!file) return;
-  const reader = new FileReader();
-  reader.onload = ()=>{
-    try{
-      const data = JSON.parse(reader.result);
-      if (data.settings) { settings = data.settings; saveSettings(); }
-      if (data.training) { training = data.training; saveTraining(); }
-      if (data.theme) { theme = data.theme; applyTheme(); }
-      loadTrainer(); loadPersonalize(); alert("Configuração importada!");
-    }catch(e){ alert("Arquivo inválido."); }
-  };
-  reader.readAsText(file);
-});
-
-// ===== Follow-ups: alerta visual
-function hasOverdueFollowups(){
-  const now = Date.now();
-  return crm.some(L => L.next_followup_at && new Date(L.next_followup_at).getTime() < now);
-}
-function checkFollowupsWarning(){
-  const warn = document.getElementById("followWarn");
-  if (hasOverdueFollowups()){ warn.style.display="block"; } else { warn.style.display="none"; }
-}
-// Faça uma checagem a cada 60s
-setInterval(checkFollowupsWarning, 60000);
-
-// ===== Boot
+/* ================== BOOT ================== */
 function boot(){
-  applyTheme();
-  document.querySelector('.tab[data-tab="demo"]').click();
-  proxyUrlEl.value = settings.proxyUrl || "/api/chat";
-  providerEl.value = settings.provider || "custom";
-  setTimeout(()=>{
-    bot(`Olá! Eu sou ${settings.agent} da ${settings.biz}.`);
-    bot("Diga se prefere carro novo ou usado e seu orçamento/uso. Eu retorno com 2–3 opções.");
-  }, 250);
+  document.querySelector('.tab[data-tab="chat"]').click();
+  onNewLead(); // cria um lead inicial e cumprimenta
 }
-document.getElementById("proxyUrl").addEventListener("change", ()=>{
-  settings.proxyUrl = document.getElementById("proxyUrl").value || "/api/chat";
-  saveSettings();
-});
 boot();
 </script>
 </body>
